@@ -100,6 +100,17 @@ const sendMoney = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(voi
         data: transaction,
     });
 }));
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const refund = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const transactionId = req.params.id;
+    const transaction = yield transaction_service_1.TransactionServices.refund(transactionId);
+    (0, sendResponse_1.sendResponse)(res, {
+        success: true,
+        statusCode: http_status_1.default.OK,
+        message: "Money Refunded successfully.",
+        data: transaction,
+    });
+}));
 exports.TransactionControllers = {
     getSingleTransaction,
     addMoney,
@@ -107,5 +118,6 @@ exports.TransactionControllers = {
     withdrawMoney,
     cashIn,
     sendMoney,
-    addMoneyConfirm
+    addMoneyConfirm,
+    refund
 };

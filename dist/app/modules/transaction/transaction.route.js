@@ -11,9 +11,9 @@ const router = (0, express_1.Router)();
 router.get('/', (0, authCheck_1.authCheck)(...Object.values(user_interface_1.IRole)), transaction_controller_1.TransactionControllers.getAllTransactions);
 router.post('/add-money', (0, authCheck_1.authCheck)(user_interface_1.IRole.USER), (0, validateRequest_1.validateRequest)(transaction_validation_1.createTransactionZodSchema), transaction_controller_1.TransactionControllers.addMoney);
 router.post('/withdraw', (0, authCheck_1.authCheck)(user_interface_1.IRole.USER), (0, validateRequest_1.validateRequest)(transaction_validation_1.createTransactionZodSchema), transaction_controller_1.TransactionControllers.withdrawMoney);
-// router.post('/cash-out',authCheck(IRole.AGENT),TransactionControllers.cashOut)
 router.post('/cash-in', (0, authCheck_1.authCheck)(user_interface_1.IRole.AGENT), (0, validateRequest_1.validateRequest)(transaction_validation_1.createTransactionZodSchema), transaction_controller_1.TransactionControllers.cashIn);
 router.post('/send-money', (0, authCheck_1.authCheck)(user_interface_1.IRole.USER, user_interface_1.IRole.AGENT), (0, validateRequest_1.validateRequest)(transaction_validation_1.createTransactionZodSchema), transaction_controller_1.TransactionControllers.sendMoney);
+router.post('/refund/:id', (0, authCheck_1.authCheck)(user_interface_1.IRole.ADMIN, user_interface_1.IRole.SUPER_ADMIN), transaction_controller_1.TransactionControllers.refund);
 router.post('/add-money-confirm/:id', (0, authCheck_1.authCheck)(user_interface_1.IRole.AGENT), transaction_controller_1.TransactionControllers.addMoneyConfirm);
 router.get('/:id', (0, authCheck_1.authCheck)(...Object.values(user_interface_1.IRole)), transaction_controller_1.TransactionControllers.getSingleTransaction);
 exports.TransactionRouter = router;

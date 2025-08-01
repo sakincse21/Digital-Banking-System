@@ -16,7 +16,7 @@ app.set("trust proxy", 1);
 app.use('/api/v1', routes_1.AppRouter);
 app.get('/', (req, res) => {
     res.status(200).json({
-        message: 'welcome to out server nigga'
+        message: 'Welcome to Digital Baking System'
     });
 });
 app.use(globalErrorHandler_1.globalErrorHandler);

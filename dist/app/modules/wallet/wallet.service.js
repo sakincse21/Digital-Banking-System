@@ -42,7 +42,7 @@ const getSingleWallet = (walletId, decodedToken) => __awaiter(void 0, void 0, vo
             throw new appErrorHandler_1.default(http_status_1.default.UNAUTHORIZED, "You do not have permission for this operation.");
         }
     }
-    const wallet = yield wallet_model_1.Wallet.findById(walletId);
+    const wallet = yield wallet_model_1.Wallet.findById(walletId).populate("transactionId");
     if (!wallet) {
         throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Wallet does not exist.");
     }

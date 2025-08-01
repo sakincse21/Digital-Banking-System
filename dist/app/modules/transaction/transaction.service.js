@@ -47,18 +47,6 @@ const getAllTransactions = (decodedToken) => __awaiter(void 0, void 0, void 0, f
             $or: [{ from: userId }, { to: userId }],
         });
     }
-    // if(!ifTransactionExists){
-    //     throw new AppError(httpStatus.BAD_REQUEST, "Transaction ID does not exist.")
-    // }
-    //   if (
-    //     decodedToken.role !== IRole.ADMIN &&
-    //     decodedToken.role !== IRole.SUPER_ADMIN
-    //   ) {
-    //     throw new AppError(
-    //       httpStatus.UNAUTHORIZED,
-    //       "You are not permitted for this operation."
-    //     );
-    //   }
     return allTransactions;
 });
 //addmoney te user request korbe, then agent api diye accept korle completed else refunded
@@ -103,6 +91,9 @@ const addMoneyConfirm = (transactionId, decodedToken) => __awaiter(void 0, void 
         if ((ifTransactionExists === null || ifTransactionExists === void 0 ? void 0 : ifTransactionExists.type) !== transaction_interface_1.ITransactionType.ADD_MONEY) {
             throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Your operation is not correct.");
         }
+        if ((ifTransactionExists === null || ifTransactionExists === void 0 ? void 0 : ifTransactionExists.status) === transaction_interface_1.ITransactionStatus.COMPLETED) {
+            throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Your operation is already completed.");
+        }
         const user = yield user_model_1.User.findById(ifTransactionExists.from);
         yield (0, transaction_utils_1.userValidator)(user);
         const userWallet = yield wallet_model_1.Wallet.findById(user === null || user === void 0 ? void 0 : user.walletId);
@@ -117,9 +108,7 @@ const addMoneyConfirm = (transactionId, decodedToken) => __awaiter(void 0, void 
         }
         if (ifTransactionExists.amount > agentWallet.balance) {
             ifTransactionExists.status = transaction_interface_1.ITransactionStatus.FAILED;
-            yield ifTransactionExists.save({ session });
-            yield session.commitTransaction();
-            session.endSession();
+            yield ifTransactionExists.save();
             throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "You do not have sufficient balance.");
         }
         userWallet.balance = userWallet.balance + ifTransactionExists.amount;
@@ -281,6 +270,49 @@ const sendMoney = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, f
         throw error;
     }
 });
+const refund = (transactionId) => __awaiter(void 0, void 0, void 0, function* () {
+    const session = yield user_model_1.User.startSession();
+    session.startTransaction();
+    try {
+        const ifTransactionExists = yield transaction_model_1.Transaction.findById(transactionId);
+        if (!ifTransactionExists) {
+            throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Transaction does not exist.");
+        }
+        const { from: to, to: from, status, amount } = ifTransactionExists;
+        const ifReceiverExists = yield user_model_1.User.findById(to);
+        yield (0, transaction_utils_1.anyValidator)(ifReceiverExists);
+        const ifSenderExists = yield user_model_1.User.findById(from);
+        yield (0, transaction_utils_1.anyValidator)(ifSenderExists);
+        if (status === transaction_interface_1.ITransactionStatus.PENDING || status === transaction_interface_1.ITransactionStatus.REFUNDED || status === transaction_interface_1.ITransactionStatus.FAILED) {
+            throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Your operation is not correct.");
+        }
+        const senderWallet = yield wallet_model_1.Wallet.findById(ifSenderExists === null || ifSenderExists === void 0 ? void 0 : ifSenderExists.walletId);
+        if (!senderWallet) {
+            throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Your wallet does not exist.");
+        }
+        if (amount > senderWallet.balance) {
+            throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Sender do not have sufficient balance.");
+        }
+        const receiverWallet = yield wallet_model_1.Wallet.findById(ifReceiverExists === null || ifReceiverExists === void 0 ? void 0 : ifReceiverExists.walletId);
+        if (!receiverWallet) {
+            throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Receiver wallet does not exist.");
+        }
+        receiverWallet.balance = receiverWallet.balance + amount;
+        senderWallet.balance = senderWallet.balance - amount;
+        ifTransactionExists.status = transaction_interface_1.ITransactionStatus.REFUNDED;
+        ifTransactionExists.save({ session });
+        yield senderWallet.save({ session });
+        yield receiverWallet.save({ session });
+        yield session.commitTransaction();
+        session.endSession();
+        return ifTransactionExists;
+    }
+    catch (error) {
+        yield session.abortTransaction();
+        session.endSession();
+        throw error;
+    }
+});
 exports.TransactionServices = {
     getSingleTransaction,
     getAllTransactions,
@@ -289,4 +321,5 @@ exports.TransactionServices = {
     cashIn,
     sendMoney,
     addMoneyConfirm,
+    refund
 };

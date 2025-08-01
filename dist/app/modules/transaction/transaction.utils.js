@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.userValidator = exports.agentValidator = void 0;
+exports.anyValidator = exports.userValidator = exports.agentValidator = void 0;
 const appErrorHandler_1 = __importDefault(require("../../errorHelpers/appErrorHandler"));
 const user_interface_1 = require("../user/user.interface");
 const http_status_1 = __importDefault(require("http-status"));
@@ -44,3 +44,14 @@ const userValidator = (ifUserExists) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.userValidator = userValidator;
+const anyValidator = (ifUserExists) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!ifUserExists) {
+        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exist.");
+    }
+    if ((ifUserExists === null || ifUserExists === void 0 ? void 0 : ifUserExists.status) == user_interface_1.IStatus.BLOCKED ||
+        (ifUserExists === null || ifUserExists === void 0 ? void 0 : ifUserExists.status) === user_interface_1.IStatus.SUSPENDED ||
+        (ifUserExists === null || ifUserExists === void 0 ? void 0 : ifUserExists.status) === user_interface_1.IStatus.DELETE) {
+        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User account is Blocked/Suspended.");
+    }
+});
+exports.anyValidator = anyValidator;
