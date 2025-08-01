@@ -72,7 +72,7 @@ export const updateUserZodSchema = z.object({
 
 export const updateAdminZodSchema = z.object({
   role: z
-  .enum([...Object.values(IRole)] as [string, ...string[]],{invalid_type_error: "Status must be a string"}).optional(),
+  .enum([...Object.values(IRole)] as [string, ...string[]],{invalid_type_error: "Role must be a string"}).optional(),
   status: z
   .enum([...Object.values(IStatus)] as [string, ...string[]],{invalid_type_error: "Status must be a string"}).optional(),
   isVerified: z
