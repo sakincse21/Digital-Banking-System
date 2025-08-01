@@ -9,7 +9,7 @@ import {
   ITransactionType,
 } from "./transaction.interface";
 import { User } from "../user/user.model";
-import { agentValidator, userValidator } from "./transaction.utils";
+import { agentValidator, anyValidator, userValidator } from "./transaction.utils";
 import { Wallet } from "../wallet/wallet.model";
 
 const getSingleTransaction = async (
@@ -54,18 +54,6 @@ const getAllTransactions = async (decodedToken: JwtPayload) => {
     });
   }
 
-  // if(!ifTransactionExists){
-  //     throw new AppError(httpStatus.BAD_REQUEST, "Transaction ID does not exist.")
-  // }
-  //   if (
-  //     decodedToken.role !== IRole.ADMIN &&
-  //     decodedToken.role !== IRole.SUPER_ADMIN
-  //   ) {
-  //     throw new AppError(
-  //       httpStatus.UNAUTHORIZED,
-  //       "You are not permitted for this operation."
-  //     );
-  //   }
 
   return allTransactions;
 };
@@ -122,6 +110,12 @@ const addMoneyConfirm = async (
         "Your operation is not correct."
       );
     }
+    if (ifTransactionExists?.status === ITransactionStatus.COMPLETED) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Your operation is already completed."
+      );
+    }
     const user = await User.findById(ifTransactionExists.from);
     await userValidator(user);
     const userWallet = await Wallet.findById(user?.walletId);
@@ -139,10 +133,8 @@ const addMoneyConfirm = async (
     if (ifTransactionExists.amount > agentWallet.balance) {
       ifTransactionExists.status = ITransactionStatus.FAILED;
 
-      await ifTransactionExists.save({ session });
+      await ifTransactionExists.save();
 
-      await session.commitTransaction();
-      session.endSession();
 
       throw new AppError(
         httpStatus.BAD_REQUEST,
@@ -365,6 +357,64 @@ const sendMoney = async (payload: ITransaction, decodedToken: JwtPayload) => {
   }
 };
 
+
+const refund = async (transactionId: string) => {
+  const session = await User.startSession();
+  session.startTransaction();
+  try {
+    const ifTransactionExists = await Transaction.findById(transactionId);
+    if(!ifTransactionExists){
+        throw new AppError(httpStatus.BAD_REQUEST, "Transaction does not exist.")
+    }
+    const { from: to, to: from, status, amount } = ifTransactionExists;
+    const ifReceiverExists = await User.findById(to)
+    await anyValidator(ifReceiverExists);
+    const ifSenderExists = await User.findById(from)
+    await anyValidator(ifSenderExists);
+
+    if (status===ITransactionStatus.PENDING || status===ITransactionStatus.REFUNDED || status===ITransactionStatus.FAILED) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Your operation is not correct."
+      );
+    }
+    const senderWallet = await Wallet.findById(ifSenderExists?.walletId);
+    if (!senderWallet) {
+      throw new AppError(httpStatus.BAD_REQUEST, "Your wallet does not exist.");
+    }
+    if (amount > senderWallet.balance) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Sender do not have sufficient balance."
+      );
+    }
+    const receiverWallet = await Wallet.findById(ifReceiverExists?.walletId);
+    if (!receiverWallet) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Receiver wallet does not exist."
+      );
+    }
+
+    
+    
+    receiverWallet.balance = receiverWallet.balance + amount;
+    senderWallet.balance = senderWallet.balance - amount;
+    ifTransactionExists.status=ITransactionStatus.REFUNDED;
+
+    ifTransactionExists.save({session})
+    await senderWallet.save({ session });
+    await receiverWallet.save({ session });
+    await session.commitTransaction();
+    session.endSession();
+    return ifTransactionExists;
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
+};
+
 export const TransactionServices = {
   getSingleTransaction,
   getAllTransactions,
@@ -373,4 +423,5 @@ export const TransactionServices = {
   cashIn,
   sendMoney,
   addMoneyConfirm,
+  refund
 };

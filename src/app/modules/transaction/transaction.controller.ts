@@ -102,6 +102,19 @@ const sendMoney = catchAsync(async (req: Request, res: Response, next: NextFunct
     })
 })
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const refund = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const transactionId = req.params.id
+    const transaction = await TransactionServices.refund(transactionId)
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Money Refunded successfully.",
+        data: transaction,
+    })
+})
+
 
 
 export const TransactionControllers = {
@@ -111,5 +124,6 @@ export const TransactionControllers = {
     withdrawMoney,
     cashIn,
     sendMoney,
-    addMoneyConfirm
+    addMoneyConfirm,
+    refund
 }

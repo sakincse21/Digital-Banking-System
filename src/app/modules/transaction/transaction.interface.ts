@@ -12,7 +12,6 @@ export enum ITransactionType{
     ADD_MONEY="ADD_MONEY",
     WITHDRAW="WITHDRAW",
     CASH_IN="CASH_IN",
-    CASH_OUT="CASH_OUT",
     REFUND="REFUND"
 }
 export interface ITransaction{

@@ -45,7 +45,7 @@ const getSingleWallet = async (walletId: string, decodedToken: JwtPayload) => {
         }
     }
 
-  const wallet = await Wallet.findById(walletId)
+  const wallet = await Wallet.findById(walletId).populate("transactionId")
   if (!wallet) {
     throw new AppError(httpStatus.BAD_REQUEST, "Wallet does not exist.");
   }

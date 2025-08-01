@@ -10,9 +10,9 @@ const router = Router();
 router.get('/',authCheck(...Object.values(IRole)),TransactionControllers.getAllTransactions)
 router.post('/add-money',authCheck(IRole.USER),validateRequest(createTransactionZodSchema),TransactionControllers.addMoney)
 router.post('/withdraw',authCheck(IRole.USER),validateRequest(createTransactionZodSchema),TransactionControllers.withdrawMoney)
-// router.post('/cash-out',authCheck(IRole.AGENT),TransactionControllers.cashOut)
 router.post('/cash-in',authCheck(IRole.AGENT),validateRequest(createTransactionZodSchema),TransactionControllers.cashIn)
 router.post('/send-money',authCheck(IRole.USER,IRole.AGENT),validateRequest(createTransactionZodSchema),TransactionControllers.sendMoney)
+router.post('/refund/:id',authCheck(IRole.ADMIN, IRole.SUPER_ADMIN),TransactionControllers.refund)
 router.post('/add-money-confirm/:id',authCheck(IRole.AGENT),TransactionControllers.addMoneyConfirm)
 router.get('/:id',authCheck(...Object.values(IRole)),TransactionControllers.getSingleTransaction)
 
