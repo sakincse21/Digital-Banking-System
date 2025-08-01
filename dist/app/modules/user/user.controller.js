@@ -62,11 +62,12 @@ const getSingleUser = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter
 }));
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getAllUsers = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield user_service_1.UserServices.getAllUsers();
+    const query = req.query;
+    const user = yield user_service_1.UserServices.getAllUsers(query);
     (0, sendResponse_1.sendResponse)(res, {
         success: true,
         statusCode: http_status_1.default.OK,
-        message: "All Users Fetched Successfully",
+        message: "Users Fetched Successfully",
         data: user,
     });
 }));

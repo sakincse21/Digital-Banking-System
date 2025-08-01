@@ -57,12 +57,13 @@ const getSingleUser = catchAsync(async (req: Request, res: Response, next: NextF
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getAllUsers = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const user = await UserServices.getAllUsers()
+    const query = req.query;
+    const user = await UserServices.getAllUsers(query as Record<string, string>)
 
     sendResponse(res, {
         success: true,
         statusCode: httpStatus.OK,
-        message: "All Users Fetched Successfully",
+        message: "Users Fetched Successfully",
         data: user,
     })
 })

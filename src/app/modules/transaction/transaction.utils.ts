@@ -1,4 +1,4 @@
-import AppError from "../../utils/errorHandler";
+import AppError from "../../errorHelpers/appErrorHandler";
 import { IRole, IStatus, IUser } from "../user/user.interface";
 import httpStatus from 'http-status';
 

@@ -1,7 +1,7 @@
 import { catchAsync } from "../utils/catchAsync";
 import { Request, Response, NextFunction } from "express";
 import { verifyToken } from "../utils/jwt";
-import AppError from "../utils/errorHandler";
+import AppError from "../errorHelpers/appErrorHandler";
 import httpStatus from 'http-status';
 import { User } from "../modules/user/user.model";
 import { IStatus } from "../modules/user/user.interface";

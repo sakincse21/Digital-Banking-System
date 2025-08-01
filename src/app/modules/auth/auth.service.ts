@@ -1,4 +1,4 @@
-import AppError from "../../utils/errorHandler";
+import AppError from "../../errorHelpers/appErrorHandler";
 import { User } from "../user/user.model"
 import httpStatus from 'http-status';
 import bcrypt from 'bcryptjs'

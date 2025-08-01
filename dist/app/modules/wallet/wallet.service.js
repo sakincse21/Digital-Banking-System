@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WalletServices = void 0;
-const errorHandler_1 = __importDefault(require("../../utils/errorHandler"));
+const appErrorHandler_1 = __importDefault(require("../../errorHelpers/appErrorHandler"));
 const http_status_1 = __importDefault(require("http-status"));
 const wallet_model_1 = require("./wallet.model");
 const user_interface_1 = require("../user/user.interface");
@@ -21,30 +21,30 @@ const user_model_1 = require("../user/user.model");
 const updateWallet = (walletId, payload) => __awaiter(void 0, void 0, void 0, function* () {
     const ifUserExist = yield wallet_model_1.Wallet.findById(walletId);
     if (!ifUserExist) {
-        throw new errorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exist.");
+        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exist.");
     }
     const wallet = yield wallet_model_1.Wallet.findByIdAndUpdate(ifUserExist._id, payload, {
         new: true,
         runValidators: true,
     });
     if (!wallet) {
-        throw new errorHandler_1.default(http_status_1.default.BAD_REQUEST, "Wallet is not updated. Try again.");
+        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Wallet is not updated. Try again.");
     }
     return wallet;
 });
 const getSingleWallet = (walletId, decodedToken) => __awaiter(void 0, void 0, void 0, function* () {
     const ifUserExists = yield user_model_1.User.findById(decodedToken.userId);
     if (!ifUserExists) {
-        throw new errorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exist.");
+        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exist.");
     }
     if (ifUserExists.role !== user_interface_1.IRole.ADMIN && ifUserExists.role !== user_interface_1.IRole.SUPER_ADMIN) {
         if (ifUserExists.walletId.toString() !== walletId) {
-            throw new errorHandler_1.default(http_status_1.default.UNAUTHORIZED, "You do not have permission for this operation.");
+            throw new appErrorHandler_1.default(http_status_1.default.UNAUTHORIZED, "You do not have permission for this operation.");
         }
     }
     const wallet = yield wallet_model_1.Wallet.findById(walletId);
     if (!wallet) {
-        throw new errorHandler_1.default(http_status_1.default.BAD_REQUEST, "Wallet does not exist.");
+        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Wallet does not exist.");
     }
     return wallet;
 });

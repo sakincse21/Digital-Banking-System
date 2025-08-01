@@ -1,5 +1,5 @@
 import { IWallet } from "./wallet.interface";
-import AppError from "../../utils/errorHandler";
+import AppError from "../../errorHelpers/appErrorHandler";
 import httpStatus from 'http-status';
 import { Wallet } from "./wallet.model";
 import { JwtPayload } from "jsonwebtoken";

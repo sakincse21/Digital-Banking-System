@@ -24,7 +24,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthServices = void 0;
-const errorHandler_1 = __importDefault(require("../../utils/errorHandler"));
+const appErrorHandler_1 = __importDefault(require("../../errorHelpers/appErrorHandler"));
 const user_model_1 = require("../user/user.model");
 const http_status_1 = __importDefault(require("http-status"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
@@ -32,11 +32,11 @@ const jwt_1 = require("../../utils/jwt");
 const login = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const ifUserExists = yield user_model_1.User.findOne({ email: payload.email });
     if (!ifUserExists) {
-        throw new errorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exist. Register first.");
+        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exist. Register first.");
     }
     const passComparison = yield bcryptjs_1.default.compare(payload.password, ifUserExists.password);
     if (!passComparison) {
-        throw new errorHandler_1.default(http_status_1.default.BAD_REQUEST, "Password does not match.");
+        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Password does not match.");
     }
     const jwtPayload = {
         userId: ifUserExists._id,

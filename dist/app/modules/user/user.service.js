@@ -24,20 +24,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserServices = void 0;
-const errorHandler_1 = __importDefault(require("../../utils/errorHandler"));
+const appErrorHandler_1 = __importDefault(require("../../errorHelpers/appErrorHandler"));
 const user_interface_1 = require("./user.interface");
 const user_model_1 = require("./user.model");
 const http_status_1 = __importDefault(require("http-status"));
 const env_1 = require("../../config/env");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const wallet_model_1 = require("../wallet/wallet.model");
+const user_constant_1 = require("./user.constant");
+const queryBuilder_1 = require("../../utils/queryBuilder");
 const createUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const session = yield user_model_1.User.startSession();
     session.startTransaction();
     try {
         const isUserExist = yield user_model_1.User.findOne({ email: payload.email });
         if (isUserExist) {
-            throw new errorHandler_1.default(http_status_1.default.BAD_REQUEST, "User already exists.");
+            throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User already exists.");
         }
         const hashedPassword = yield bcryptjs_1.default.hash(payload.password, Number(env_1.envVars.BCRYPT_SALT));
         payload.password = hashedPassword;
@@ -67,18 +69,18 @@ const updateUser = (userId, payload, decodedToken) => __awaiter(void 0, void 0, 
     if (decodedToken.userId !== userId &&
         decodedToken.role !== user_interface_1.IRole.ADMIN &&
         decodedToken.role !== user_interface_1.IRole.SUPER_ADMIN) {
-        throw new errorHandler_1.default(http_status_1.default.UNAUTHORIZED, "You are not authorized.");
+        throw new appErrorHandler_1.default(http_status_1.default.UNAUTHORIZED, "You are not authorized.");
     }
     const ifUserExist = yield user_model_1.User.findById(userId);
     if (!ifUserExist) {
-        throw new errorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exist.");
+        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exist.");
     }
     const user = yield user_model_1.User.findByIdAndUpdate(ifUserExist._id, payload, {
         new: true,
         runValidators: true,
     });
     if (!user) {
-        throw new errorHandler_1.default(http_status_1.default.BAD_REQUEST, "User is not updated. Try again.");
+        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User is not updated. Try again.");
     }
     // Convert to plain object and exclude password
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -88,11 +90,11 @@ const updateUser = (userId, payload, decodedToken) => __awaiter(void 0, void 0, 
 const deleteUser = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     const ifUserExist = yield user_model_1.User.findById(userId);
     if (!ifUserExist) {
-        throw new errorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exist.");
+        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exist.");
     }
     const user = yield user_model_1.User.findByIdAndUpdate(ifUserExist._id, { status: user_interface_1.IStatus.DELETE }, { new: true, runValidators: true });
     if (!user) {
-        throw new errorHandler_1.default(http_status_1.default.BAD_REQUEST, "User is not updated. Try again.");
+        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User is not updated. Try again.");
     }
     // Convert to plain object and exclude password
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -102,13 +104,23 @@ const deleteUser = (userId) => __awaiter(void 0, void 0, void 0, function* () {
 const getSingleUser = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield user_model_1.User.findById(userId).select("-password");
     if (!user) {
-        throw new errorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exist.");
+        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exist.");
     }
     return user.toObject();
 });
-const getAllUsers = () => __awaiter(void 0, void 0, void 0, function* () {
-    const users = yield user_model_1.User.find().select("-password");
-    return users.map((user) => user.toObject());
+const getAllUsers = (query) => __awaiter(void 0, void 0, void 0, function* () {
+    const queryBuilder = new queryBuilder_1.QueryBuilder(user_model_1.User.find(), query);
+    const usersData = queryBuilder
+        .filter()
+        .search(user_constant_1.userSearchableFields)
+        .sort()
+        .fields()
+        .paginate();
+    const [data, meta] = yield Promise.all([
+        usersData.build(),
+        queryBuilder.getMeta(),
+    ]);
+    return { data, meta };
 });
 const getMe = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield user_model_1.User.findById(userId)

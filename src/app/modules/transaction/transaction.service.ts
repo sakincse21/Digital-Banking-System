@@ -1,6 +1,6 @@
 import { JwtPayload } from "jsonwebtoken";
 import { Transaction } from "./transaction.model";
-import AppError from "../../utils/errorHandler";
+import AppError from "../../errorHelpers/appErrorHandler";
 import httpStatus from "http-status";
 import { IRole } from "../user/user.interface";
 import {

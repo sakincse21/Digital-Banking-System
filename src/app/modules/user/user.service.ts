@@ -1,4 +1,4 @@
-import AppError from "../../utils/errorHandler";
+import AppError from "../../errorHelpers/appErrorHandler";
 import { IRole, IStatus, IUser } from "./user.interface";
 import { User } from "./user.model";
 import httpStatus from "http-status";
@@ -6,6 +6,8 @@ import { envVars } from "../../config/env";
 import bcryptjs from "bcryptjs";
 import { JwtPayload } from "jsonwebtoken";
 import { Wallet } from "../wallet/wallet.model";
+import { userSearchableFields } from "./user.constant";
+import { QueryBuilder } from "../../utils/queryBuilder";
 
 const createUser = async (payload: Partial<IUser>) => {
   const session = await User.startSession();
@@ -28,11 +30,11 @@ const createUser = async (payload: Partial<IUser>) => {
       session,
     });
 
-    const user =userArray[0];
+    const user = userArray[0];
 
-    const wallet = await Wallet.create([{userId: user._id}], { session });
+    const wallet = await Wallet.create([{ userId: user._id }], { session });
 
-    user.walletId= wallet[0]._id;
+    user.walletId = wallet[0]._id;
 
     await user.save();
 
@@ -128,10 +130,21 @@ const getSingleUser = async (userId: string) => {
   return user.toObject();
 };
 
-const getAllUsers = async () => {
-  const users = await User.find().select("-password");
+const getAllUsers = async (query: Record<string, string>) => {
+  const queryBuilder = new QueryBuilder(User.find(), query);
+  const usersData = queryBuilder
+    .filter()
+    .search(userSearchableFields)
+    .sort()
+    .fields()
+    .paginate();
 
-  return users.map((user) => user.toObject());
+  const [data, meta] = await Promise.all([
+    usersData.build(),
+    queryBuilder.getMeta(),
+  ]);
+
+  return { data, meta };
 };
 
 const getMe = async (userId: string) => {
