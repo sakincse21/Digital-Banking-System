@@ -20,7 +20,8 @@ const login = async (payload:Record<string,string>)=>{
     const jwtPayload = {
         userId: ifUserExists._id,
         role: ifUserExists.role,
-        email: ifUserExists.email
+        email: ifUserExists.email,
+        walletId: ifUserExists.walletId
     }
 
     const accessToken = generateToken(jwtPayload);

@@ -31,7 +31,7 @@ const UserSchema = new Schema<IUser>({
     walletId: {
         type: Schema.Types.ObjectId,
         ref: "Wallet",
-        required: true
+        // required: true
     },
     isVerified: {
         type: Boolean,

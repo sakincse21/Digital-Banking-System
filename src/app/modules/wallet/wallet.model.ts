@@ -7,10 +7,15 @@ const WalletSchema = new Schema<IWallet>({
         min: 0,
         default: 50,
     },
-    // transactionId: {
-    //     type: [Schema.Types.ObjectId],
-    //     ref: 'Transaction'
-    // }
+    userId:{
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
+    transactionId: {
+        type: [Schema.Types.ObjectId],
+        ref: 'Transaction'
+    }
 })
 
 export const Wallet = model<IWallet>('Wallet', WalletSchema)

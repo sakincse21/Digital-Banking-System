@@ -3,5 +3,6 @@ import { Types } from "mongoose";
 
 export interface IWallet{
     balance: number;
-    transactionId: Types.ObjectId[]
+    transactionId: Types.ObjectId[];
+    userId: Types.ObjectId;
 }

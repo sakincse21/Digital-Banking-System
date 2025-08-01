@@ -3,27 +3,24 @@ import { UserControllers } from "./user.controller";
 import { authCheck } from "../../middlewares/authCheck";
 import { IRole } from "./user.interface";
 import { validateRequest } from "../../middlewares/validateRequest";
-import { createUserZodSchema, updateUserZodSchema } from "./user.validation";
+import { createUserZodSchema, updateAdminZodSchema, updateUserZodSchema } from "./user.validation";
 
 const router = Router();
 
-/**Agent Section
+/**
  * create by anyone
- * update normal info like user
- * update agent info by admin
+ * update normal info from user
+ * update role/status/verification info by admin
  * delete by admin
  */
-// router.post('/agent', UserControllers.createAgent)
-// router.patch('/agent/:id', UserControllers.updateAgent)
-// router.delete('/agent/:id', UserControllers.deleteUser)
-
-// User Section
+router.patch('/admin/:id', authCheck(IRole.ADMIN, IRole.SUPER_ADMIN), validateRequest(updateAdminZodSchema), UserControllers.updateUser)
 router.get('/', authCheck(IRole.ADMIN, IRole.SUPER_ADMIN) , UserControllers.getAllUsers) //by admin
 router.post('/create',validateRequest(createUserZodSchema), UserControllers.createUser)
 router.get('/me', authCheck(...Object.values(IRole)),UserControllers.getMe) //by anyone
-router.patch('/:id',authCheck(IRole.ADMIN, IRole.USER), validateRequest(updateUserZodSchema), UserControllers.updateUser) //not sure
-router.get('/:id', authCheck(IRole.ADMIN) ,UserControllers.getSingleUser) //by admin
-router.delete('/:id', authCheck(IRole.ADMIN), UserControllers.deleteUser)
+router.patch('/:id',authCheck(...Object.values(IRole)), validateRequest(updateUserZodSchema), UserControllers.updateUser) //not sure
+router.get('/:id', authCheck(IRole.ADMIN, IRole.SUPER_ADMIN) ,UserControllers.getSingleUser) //by admin
+//delete is not needed. can be done using admin patch.
+router.delete('/:id', authCheck(IRole.ADMIN, IRole.SUPER_ADMIN), UserControllers.deleteUser)
 
 
 

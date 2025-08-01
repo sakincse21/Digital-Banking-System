@@ -2,7 +2,6 @@ import bcryptjs from "bcryptjs";
 import { envVars } from "../config/env";
 import { IRole, IStatus, IUser } from "../modules/user/user.interface";
 import { User } from "../modules/user/user.model";
-import { Wallet } from "../modules/wallet/wallet.model";
 
 export const seedSuperAdmin = async () => {
     try {
@@ -17,9 +16,9 @@ export const seedSuperAdmin = async () => {
 
         const hashedPassword = await bcryptjs.hash(envVars.SUPER_ADMIN_PASSWORD, Number(envVars.BCRYPT_SALT))
 
-        const wallet = await Wallet.create({});
+        // const wallet = await Wallet.create({});
 
-        const payload: IUser = {
+        const payload: Partial<IUser> = {
             name: "Super admin",
             role: IRole.SUPER_ADMIN,
             email: envVars.SUPER_ADMIN_EMAIL,
@@ -29,7 +28,7 @@ export const seedSuperAdmin = async () => {
             address: "Khulna, BD",
             nidNo: "0123456789012",
             status: IStatus.ACTIVE,
-            walletId: wallet?._id
+            // walletId: wallet?._id
         }
 
         const superadmin = await User.create(payload)

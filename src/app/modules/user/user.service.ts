@@ -1,5 +1,5 @@
 import AppError from "../../utils/errorHandler";
-import { IStatus, IUser } from "./user.interface";
+import { IRole, IStatus, IUser } from "./user.interface";
 import { User } from "./user.model";
 import httpStatus from "http-status";
 import { envVars } from "../../config/env";
@@ -24,15 +24,21 @@ const createUser = async (payload: Partial<IUser>) => {
 
     payload.password = hashedPassword;
 
-    const wallet = await Wallet.create([{}], { session });
-
-    const user = await User.create([{ ...payload, walletId: wallet[0]._id }], {
+    const userArray = await User.create([payload], {
       session,
     });
 
+    const user =userArray[0];
+
+    const wallet = await Wallet.create([{userId: user._id}], { session });
+
+    user.walletId= wallet[0]._id;
+
+    await user.save();
+
     // Convert to plain object and exclude password
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...userData } = user[0].toObject();
+    const { password, ...userData } = user.toObject();
 
     //now create default wallet
     //use transaction
@@ -52,7 +58,11 @@ const updateUser = async (
   payload: Partial<IUser>,
   decodedToken: JwtPayload
 ) => {
-  if (decodedToken.userId !== userId) {
+  if (
+    decodedToken.userId !== userId &&
+    decodedToken.role !== IRole.ADMIN &&
+    decodedToken.role !== IRole.SUPER_ADMIN
+  ) {
     throw new AppError(httpStatus.UNAUTHORIZED, "You are not authorized.");
   }
 
@@ -121,11 +131,13 @@ const getSingleUser = async (userId: string) => {
 const getAllUsers = async () => {
   const users = await User.find().select("-password");
 
-  return users.map(user => user.toObject());
+  return users.map((user) => user.toObject());
 };
 
 const getMe = async (userId: string) => {
-  const user = await User.findById(userId).select("-password").populate("walletId");
+  const user = await User.findById(userId)
+    .select("-password")
+    .populate("walletId");
 
   if (!user) {
     return null;

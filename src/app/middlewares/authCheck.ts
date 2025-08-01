@@ -33,6 +33,10 @@ export const authCheck = (...authRoles: string[]) => catchAsync(async (req: Requ
         throw new AppError(httpStatus.BAD_REQUEST,"Your account is Blocked/Suspended. Contact support team.")
     }
 
+    if(!ifUserExitst?.isVerified){
+        throw new AppError(httpStatus.UNAUTHORIZED, "You are not verified yet. Contact support.")
+    }
+
     req.user=verifiedToken;
 
     next();
