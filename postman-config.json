@@ -1,0 +1,891 @@
+{
+	"info": {
+		"_postman_id": "1ede9d4b-c021-4ba0-b8a0-d674b89c76a1",
+		"name": "Digital Banking System Deploy",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "40897477"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\":\"sakin@gmail.com\",\n    // \"email\":\"saleheen.sakin@gmail.com\",\n    \"password\":\"Pass1234!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://digital-banking-system-sakincse21.vercel.app/api/v1/auth/login",
+							"protocol": "https",
+							"host": [
+								"digital-banking-system-sakincse21",
+								"vercel",
+								"app"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Agent",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\":\"noman@gmail.com\",\n    // \"email\":\"saleheen.sakin@gmail.com\",\n    \"password\":\"Pass1234!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://digital-banking-system-sakincse21.vercel.app/api/v1/auth/login",
+							"protocol": "https",
+							"host": [
+								"digital-banking-system-sakincse21",
+								"vercel",
+								"app"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login User 2",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\":\"shuvo@gmail.com\",\n    // \"email\":\"saleheen.sakin@gmail.com\",\n    \"password\":\"Pass1234!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://digital-banking-system-sakincse21.vercel.app/api/v1/auth/login",
+							"protocol": "https",
+							"host": [
+								"digital-banking-system-sakincse21",
+								"vercel",
+								"app"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Admin Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\":\"saleheen.sakin@gmail.com\",\n    \"password\":\"Pass1234!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://digital-banking-system-sakincse21.vercel.app/api/v1/auth/login",
+							"protocol": "https",
+							"host": [
+								"digital-banking-system-sakincse21",
+								"vercel",
+								"app"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "### 🔐 **Auth Folder Overview**\n\nThis folder contains login endpoints for different user roles: `User`, `Agent`, and `Admin`.\n\n- All users log in with **email** and **password**\n    \n- On success, a **JWT token** is issued and sent as an **HTTP-only cookie and also with response**"
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Shuvo\",\n    \"phoneNo\": \"01516758582\",\n    \"email\": \"shuvo@gmail.com\",\n    \"address\": \"Faridpur, Dhaka\",\n    \"password\": \"Pass1234!\",\n    \"nidNo\": \"1234567820146\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://digital-banking-system-sakincse21.vercel.app/api/v1/user/create",
+							"protocol": "https",
+							"host": [
+								"digital-banking-system-sakincse21",
+								"vercel",
+								"app"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Me",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://digital-banking-system-sakincse21.vercel.app/api/v1/user/me",
+							"protocol": "https",
+							"host": [
+								"digital-banking-system-sakincse21",
+								"vercel",
+								"app"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Users",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://digital-banking-system-sakincse21.vercel.app/api/v1/user/all-users",
+							"protocol": "https",
+							"host": [
+								"digital-banking-system-sakincse21",
+								"vercel",
+								"app"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user",
+								"all-users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Users with Queries",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://digital-banking-system-sakincse21.vercel.app/api/v1/user/all-users?isVerified=false",
+							"protocol": "https",
+							"host": [
+								"digital-banking-system-sakincse21",
+								"vercel",
+								"app"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user",
+								"all-users"
+							],
+							"query": [
+								{
+									"key": "isVerified",
+									"value": "false"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single User",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://digital-banking-system-sakincse21.vercel.app/api/v1/user/688e0fa3328c541fc979aeaf",
+							"protocol": "https",
+							"host": [
+								"digital-banking-system-sakincse21",
+								"vercel",
+								"app"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user",
+								"688e0fa3328c541fc979aeaf"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Password",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"newPassword\": \"Pass1234!\",\n    \"oldPassword\": \"Pass1234!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://digital-banking-system-sakincse21.vercel.app/api/v1/user/update-password",
+							"protocol": "https",
+							"host": [
+								"digital-banking-system-sakincse21",
+								"vercel",
+								"app"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user",
+								"update-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    // \"role\": \"AGENT\"\n    \"name\": \"Saleheen\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://digital-banking-system-sakincse21.vercel.app/api/v1/user/688e0fa3328c541fc979aeaf",
+							"protocol": "https",
+							"host": [
+								"digital-banking-system-sakincse21",
+								"vercel",
+								"app"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user",
+								"688e0fa3328c541fc979aeaf"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update BY ADMIN",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"role\": \"AGENT\",\n    // \"status\": \"ACTIVE\",\n    \"isVerified\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://digital-banking-system-sakincse21.vercel.app/api/v1/user/admin/688e0f88328c541fc979aea9",
+							"protocol": "https",
+							"host": [
+								"digital-banking-system-sakincse21",
+								"vercel",
+								"app"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user",
+								"admin",
+								"688e0f88328c541fc979aea9"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://digital-banking-system-sakincse21.vercel.app/api/v1/user/688def47a78740c82d2e9111",
+							"protocol": "https",
+							"host": [
+								"digital-banking-system-sakincse21",
+								"vercel",
+								"app"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user",
+								"688def47a78740c82d2e9111"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "### 👤 **User Folder Overview**\n\nThis folder handles all user-related operations including:\n\n- ✅ **Registration** (`/user/create`) — Users and agents can register with email, phoneNo, password, name, nidno, address. A wallet is created automatically with a default balance of TK50.\n    \n- ✅ **Get My Info** (`/user/me`) — Authenticated users can retrieve their profile.\n    \n- ✅ **Password Change** (`/user/update-password`) — Allows users to update passwords securely.\n    \n- ✅ **Admin Controls**:\n    \n    - Get all/one users\n        \n    - Update user by ID (role/status/verification)\n        \n    - Delete user\n        \n- ✅ **Role Support**: Admin, User, and Agent"
+		},
+		{
+			"name": "Wallet",
+			"item": [
+				{
+					"name": "Get Wallet",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://digital-banking-system-sakincse21.vercel.app/api/v1/wallet/688e0fa3328c541fc979aeb1",
+							"protocol": "https",
+							"host": [
+								"digital-banking-system-sakincse21",
+								"vercel",
+								"app"
+							],
+							"path": [
+								"api",
+								"v1",
+								"wallet",
+								"688e0fa3328c541fc979aeb1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Wallet by Phone",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://digital-banking-system-sakincse21.vercel.app/api/v1/wallet/wallet-id/01925066128",
+							"protocol": "https",
+							"host": [
+								"digital-banking-system-sakincse21",
+								"vercel",
+								"app"
+							],
+							"path": [
+								"api",
+								"v1",
+								"wallet",
+								"wallet-id",
+								"01925066128"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Wallets",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://digital-banking-system-sakincse21.vercel.app/api/v1/wallet/",
+							"protocol": "https",
+							"host": [
+								"digital-banking-system-sakincse21",
+								"vercel",
+								"app"
+							],
+							"path": [
+								"api",
+								"v1",
+								"wallet",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Wallet",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"balance\": 500\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/v1/wallet/688e0fa3328c541fc979aeb1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"v1",
+								"wallet",
+								"688e0fa3328c541fc979aeb1"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "### 💳 **Wallet Folder Overview**\n\nThis folder includes endpoints for wallet-related features.\n\n- ✅ **Get Wallet by ID or Phone Number** — Retrieve wallet details\n    \n- ✅ **Get All Wallets** — Admin can fetch all wallets in the system\n    \n- ✅ **Update Wallet (Admin only)** — Update balance or block/unblock status manually"
+		},
+		{
+			"name": "Transaction",
+			"item": [
+				{
+					"name": "Withdraw Money",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"to\": \"01534942453\",\n    \"amount\": 200,\n    \"type\": \"WITHDRAW\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://digital-banking-system-sakincse21.vercel.app/api/v1/transaction/withdraw",
+							"protocol": "https",
+							"host": [
+								"digital-banking-system-sakincse21",
+								"vercel",
+								"app"
+							],
+							"path": [
+								"api",
+								"v1",
+								"transaction",
+								"withdraw"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cash In",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"to\": \"01925066128\",\n    \"amount\": 500,\n    \"type\": \"CASH_IN\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://digital-banking-system-sakincse21.vercel.app/api/v1/transaction/cash-in",
+							"protocol": "https",
+							"host": [
+								"digital-banking-system-sakincse21",
+								"vercel",
+								"app"
+							],
+							"path": [
+								"api",
+								"v1",
+								"transaction",
+								"cash-in"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send Money",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"to\": \"01516758582\",\n    \"amount\": 5,\n    \"type\": \"SEND_MONEY\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://digital-banking-system-sakincse21.vercel.app/api/v1/transaction/send-money",
+							"protocol": "https",
+							"host": [
+								"digital-banking-system-sakincse21",
+								"vercel",
+								"app"
+							],
+							"path": [
+								"api",
+								"v1",
+								"transaction",
+								"send-money"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Money",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"to\": \"01534942453\",\n    \"amount\": 500,\n    \"type\": \"ADD_MONEY\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://digital-banking-system-sakincse21.vercel.app/api/v1/transaction/add-money",
+							"protocol": "https",
+							"host": [
+								"digital-banking-system-sakincse21",
+								"vercel",
+								"app"
+							],
+							"path": [
+								"api",
+								"v1",
+								"transaction",
+								"add-money"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Money Confirm",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://digital-banking-system-sakincse21.vercel.app/api/v1/transaction/add-money-confirm/688e1366476877e2132e83b4",
+							"protocol": "https",
+							"host": [
+								"digital-banking-system-sakincse21",
+								"vercel",
+								"app"
+							],
+							"path": [
+								"api",
+								"v1",
+								"transaction",
+								"add-money-confirm",
+								"688e1366476877e2132e83b4"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "All Transactions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://digital-banking-system-sakincse21.vercel.app/api/v1/transaction/",
+							"protocol": "https",
+							"host": [
+								"digital-banking-system-sakincse21",
+								"vercel",
+								"app"
+							],
+							"path": [
+								"api",
+								"v1",
+								"transaction",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refund",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://digital-banking-system-sakincse21.vercel.app/api/v1/transaction/refund/688e1366476877e2132e83b4",
+							"protocol": "https",
+							"host": [
+								"digital-banking-system-sakincse21",
+								"vercel",
+								"app"
+							],
+							"path": [
+								"api",
+								"v1",
+								"transaction",
+								"refund",
+								"688e1366476877e2132e83b4"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Single Transaction",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODhlMGY3ODMyOGM1NDFmYzk3OWFlYTMiLCJyb2xlIjoiU1VQRVJfQURNSU4iLCJlbWFpbCI6InNhbGVoZWVuLnNha2luQGdtYWlsLmNvbSIsImlhdCI6MTc1NDE0MDY1OCwiZXhwIjoxNzU0NzQ1NDU4fQ.1ahxDxwFIHpG4lUbyeaZyiHL1b8pYb3lw8li66GFT0g",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://digital-banking-system-sakincse21.vercel.app/api/v1/transaction/688e1343476877e2132e839f",
+							"protocol": "https",
+							"host": [
+								"digital-banking-system-sakincse21",
+								"vercel",
+								"app"
+							],
+							"path": [
+								"api",
+								"v1",
+								"transaction",
+								"688e1343476877e2132e839f"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "### 🧾 **Transaction Folder Overview**\n\nThis folder provides endpoints for handling **all financial operations**, including:\n\n- ✅ **Add Money** — Adds money to a user's wallet (requires manual confirmation from agent)\n    \n- ✅ **Send Money** — Sends money to another same role wallet\n    \n- ✅ **Withdraw** — Withdraw money from own wallet\n    \n- ✅ **Cash In** — Agent adds money to users wallet\n    \n- ✅ **Refunds** — Admins can refund a transaction by ID\n    \n- ✅ **Transaction History** — Get all transactions or one by ID"
+		}
+	]
+}

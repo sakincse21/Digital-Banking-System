@@ -140,7 +140,7 @@ npm run dev
 
 ## Video
 
-- [Youtube]()
+[![YouTube](https://img.youtube.com/vi/Pjn9PS_1MkI/0.jpg)](https://youtu.be/Pjn9PS_1MkI)
 
 ---
 

@@ -79,11 +79,11 @@ const updateUser = async (
       throw new AppError(httpStatus.BAD_REQUEST, "User does not exist.");
     }
 
-    const user = await User.findByIdAndUpdate(ifUserExist._id, payload, [{
+    const user = await User.findByIdAndUpdate(ifUserExist._id, payload, {
       new: true,
       runValidators: true,
       session
-    }]);
+    });
 
     if(payload.phoneNo){
       await Wallet.findByIdAndUpdate(user?.walletId,{walletId: user?.phoneNo},{session})
