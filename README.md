@@ -82,6 +82,47 @@ sakincse21-digital-banking-system/
 
 ---
 
+## 🗃️ Model Structures
+
+### **User Model**
+```typescript
+interface IUser {
+  name: string;
+  phoneNo: string;
+  email: string;
+  role: IRole; // 'AGENT' | 'ADMIN' | 'USER' | 'SUPER_ADMIN'
+  address: string;
+  password: string;
+  isVerified: boolean;
+  nidNo: string;
+  status: IStatus; // 'ACTIVE' | 'SUSPENDED' | 'BLOCKED' | 'DELETE'
+  walletId: Types.ObjectId; // Reference to Wallet
+}
+```
+
+### **Wallet Model**
+```typescript
+interface IWallet {
+  balance: number; // Minimum 0, default 50
+  transactionId: Types.ObjectId[]; // Array of Transaction references
+  userId: Types.ObjectId; // Reference to User
+  walletId: string; // Unique (phone number for better user experience)
+}
+```
+
+### **Transaction Model**
+```typescript
+interface ITransaction {
+  from: string; // Sender's walletId (phone number)
+  to: string; // Receiver's walletId (phone number)
+  amount: number; // Minimum 5 for sending money
+  status: ITransactionStatus; // 'PENDING' | 'COMPLETED' | 'REFUNDED' | 'FAILED'
+  type: ITransactionType; // 'SEND_MONEY' | 'ADD_MONEY' | 'WITHDRAW' | 'CASH_IN' | 'REFUND'
+}
+```
+
+---
+
 ## 🚀 Project Setup
 
 ### ⚙️ Environment Setup
