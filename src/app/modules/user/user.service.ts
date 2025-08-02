@@ -147,7 +147,8 @@ const getSingleUser = async (userId: string) => {
     throw new AppError(httpStatus.BAD_REQUEST, "User does not exist.");
   }
 
-  return user.toObject();
+  const userData = await user.populate("walletId")
+  return userData.toObject();
 };
 
 //admins can get all users info
