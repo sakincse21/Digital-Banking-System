@@ -16,7 +16,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\":\"sakin@gmail.com\",\n    // \"email\":\"saleheen.sakin@gmail.com\",\n    \"password\":\"Pass1234!\"\n}",
+							"raw": "{\n    \"email\":\"sakin@gmail.com\",\n    // \"email\":\"\",\n    \"password\":\"Pass1234!\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -862,8 +862,7 @@
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODhlMGY3ODMyOGM1NDFmYzk3OWFlYTMiLCJyb2xlIjoiU1VQRVJfQURNSU4iLCJlbWFpbCI6InNhbGVoZWVuLnNha2luQGdtYWlsLmNvbSIsImlhdCI6MTc1NDE0MDY1OCwiZXhwIjoxNzU0NzQ1NDU4fQ.1ahxDxwFIHpG4lUbyeaZyiHL1b8pYb3lw8li66GFT0g",
-								"type": "text"
+								"value": "text"
 							}
 						],
 						"url": {
