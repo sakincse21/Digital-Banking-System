@@ -84,6 +84,8 @@ sakincse21-digital-banking-system/
 
 ## 🗃️ Model Structures
 
+[![ERD](./src/app/assets/img/ERD-digital-banking-system.png)]
+
 ### **User Model**
 ```typescript
 interface IUser {
