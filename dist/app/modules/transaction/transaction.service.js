@@ -37,9 +37,14 @@ const getSingleTransaction = (transactionId, decodedToken) => __awaiter(void 0, 
     }
     return ifTransactionExists.toObject();
 });
-//admins can get all the transactions they want
+//admins can get all the transactions or users can view their own all transactions
 const getAllTransactions = (decodedToken) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = decodedToken.userId;
+    const ifUserExists = yield user_model_1.User.findById(userId);
+    if (!ifUserExists) {
+        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exists.");
+    }
+    const walletId = ifUserExists.phoneNo;
     let allTransactions;
     if (decodedToken.role === user_interface_1.IRole.ADMIN ||
         decodedToken.role === user_interface_1.IRole.SUPER_ADMIN) {
@@ -47,7 +52,7 @@ const getAllTransactions = (decodedToken) => __awaiter(void 0, void 0, void 0, f
     }
     else {
         allTransactions = yield transaction_model_1.Transaction.find({
-            $or: [{ from: userId }, { to: userId }],
+            $or: [{ from: walletId }, { to: walletId }],
         });
     }
     return allTransactions;

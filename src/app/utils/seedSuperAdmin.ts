@@ -21,14 +21,13 @@ export const seedSuperAdmin = async () => {
         // const wallet = await Wallet.create({});
 
         const payload: Partial<IUser> = {
-            name: "Super admin",
+            name: envVars.SUPER_ADMIN_NAME,
             role: IRole.SUPER_ADMIN,
             email: envVars.SUPER_ADMIN_EMAIL,
             password: hashedPassword,
             isVerified: true,
-            phoneNo: "01833410082",
-            address: "Khulna, BD",
-            nidNo: "0123456789012",
+            phoneNo: envVars.SUPER_ADMIN_PHONENO,
+            nidNo: envVars.SUPER_ADMIN_NIDNO,
             status: IStatus.ACTIVE,
             // walletId: wallet?._id
         }

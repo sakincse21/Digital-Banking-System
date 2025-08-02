@@ -42,9 +42,14 @@ const getSingleTransaction = async (
   return ifTransactionExists.toObject();
 };
 
-//admins can get all the transactions they want
+//admins can get all the transactions or users can view their own all transactions
 const getAllTransactions = async (decodedToken: JwtPayload) => {
   const userId = decodedToken.userId;
+  const ifUserExists = await User.findById(userId)
+  if(!ifUserExists){
+    throw new AppError(httpStatus.BAD_REQUEST, "User does not exists.")
+  }
+  const walletId = ifUserExists.phoneNo
   let allTransactions;
   if (
     decodedToken.role === IRole.ADMIN ||
@@ -53,7 +58,7 @@ const getAllTransactions = async (decodedToken: JwtPayload) => {
     allTransactions = await Transaction.find({});
   } else {
     allTransactions = await Transaction.find({
-      $or: [{ from: userId }, { to: userId }],
+      $or: [{ from: walletId }, { to: walletId }],
     });
   }
 

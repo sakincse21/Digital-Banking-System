@@ -30,14 +30,13 @@ const seedSuperAdmin = () => __awaiter(void 0, void 0, void 0, function* () {
         const hashedPassword = yield bcryptjs_1.default.hash(env_1.envVars.SUPER_ADMIN_PASSWORD, Number(env_1.envVars.BCRYPT_SALT));
         // const wallet = await Wallet.create({});
         const payload = {
-            name: "Super admin",
+            name: env_1.envVars.SUPER_ADMIN_NAME,
             role: user_interface_1.IRole.SUPER_ADMIN,
             email: env_1.envVars.SUPER_ADMIN_EMAIL,
             password: hashedPassword,
             isVerified: true,
-            phoneNo: "01833410082",
-            address: "Khulna, BD",
-            nidNo: "0123456789012",
+            phoneNo: env_1.envVars.SUPER_ADMIN_PHONENO,
+            nidNo: env_1.envVars.SUPER_ADMIN_NIDNO,
             status: user_interface_1.IStatus.ACTIVE,
             // walletId: wallet?._id
         };

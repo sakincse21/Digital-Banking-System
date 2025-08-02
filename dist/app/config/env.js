@@ -7,7 +7,7 @@ exports.envVars = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const loadEnvVariables = () => {
-    const requiredEnvVariables = ["PORT", "MONGODB_URL", "NODE_ENV", "BCRYPT_SALT", "JWT_SECRET", "JWT_EXPIRE", "SUPER_ADMIN_PASSWORD", "SUPER_ADMIN_EMAIL"];
+    const requiredEnvVariables = ["PORT", "MONGODB_URL", "NODE_ENV", "BCRYPT_SALT", "JWT_SECRET", "JWT_EXPIRE", "SUPER_ADMIN_PASSWORD", "SUPER_ADMIN_EMAIL", "SUPER_ADMIN_NAME", "SUPER_ADMIN_PHONENO", "SUPER_ADMIN_NIDNO"];
     requiredEnvVariables.forEach((key) => {
         if (!process.env[key]) {
             throw new Error(`Missing required environment variable ${key}`);
@@ -23,6 +23,9 @@ const loadEnvVariables = () => {
         JWT_EXPIRE: process.env.JWT_EXPIRE,
         SUPER_ADMIN_PASSWORD: process.env.SUPER_ADMIN_PASSWORD,
         SUPER_ADMIN_EMAIL: process.env.SUPER_ADMIN_EMAIL,
+        SUPER_ADMIN_NAME: process.env.SUPER_ADMIN_NAME,
+        SUPER_ADMIN_NIDNO: process.env.SUPER_ADMIN_NIDNO,
+        SUPER_ADMIN_PHONENO: process.env.SUPER_ADMIN_PHONENO
     };
 };
 exports.envVars = loadEnvVariables();

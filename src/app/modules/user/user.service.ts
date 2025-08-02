@@ -33,11 +33,14 @@ const createUser = async (payload: Partial<IUser>) => {
 
     const user = userArray[0];
 
-    const wallet = await Wallet.create([{ walletId: user.phoneNo ,userId: user._id }], { session });
+    const wallet = await Wallet.create(
+      [{ walletId: user.phoneNo, userId: user._id }],
+      { session }
+    );
 
     user.walletId = wallet[0]._id;
 
-    await user.save();
+    await user.save({ session });
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userData } = user.toObject();
@@ -59,36 +62,54 @@ const updateUser = async (
   payload: Partial<IUser>,
   decodedToken: JwtPayload
 ) => {
-  if (
-    decodedToken.userId !== userId &&
-    decodedToken.role !== IRole.ADMIN &&
-    decodedToken.role !== IRole.SUPER_ADMIN
-  ) {
-    throw new AppError(httpStatus.UNAUTHORIZED, "You are not authorized.");
+  const session = await User.startSession();
+  session.startTransaction();
+  try {
+    if (
+      decodedToken.userId !== userId &&
+      decodedToken.role !== IRole.ADMIN &&
+      decodedToken.role !== IRole.SUPER_ADMIN
+    ) {
+      throw new AppError(httpStatus.UNAUTHORIZED, "You are not authorized.");
+    }
+
+    const ifUserExist = await User.findById(userId);
+
+    if (!ifUserExist) {
+      throw new AppError(httpStatus.BAD_REQUEST, "User does not exist.");
+    }
+
+    const user = await User.findByIdAndUpdate(ifUserExist._id, payload, [{
+      new: true,
+      runValidators: true,
+      session
+    }]);
+
+    if(payload.phoneNo){
+      await Wallet.findByIdAndUpdate(user?.walletId,{walletId: user?.phoneNo},{session})
+    }
+
+    if (!user) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "User is not updated. Try again."
+      );
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...userData } = user.toObject();
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return userData;
+
+    return userData;
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
   }
-
-  const ifUserExist = await User.findById(userId);
-
-  if (!ifUserExist) {
-    throw new AppError(httpStatus.BAD_REQUEST, "User does not exist.");
-  }
-
-  const user = await User.findByIdAndUpdate(ifUserExist._id, payload, {
-    new: true,
-    runValidators: true,
-  });
-
-  if (!user) {
-    throw new AppError(
-      httpStatus.BAD_REQUEST,
-      "User is not updated. Try again."
-    );
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { password, ...userData } = user.toObject();
-
-  return userData;
 };
 
 //admins can mark anyone as deleted
@@ -154,30 +175,39 @@ const getMe = async (userId: string) => {
     .populate("walletId");
 
   if (!user) {
-    throw new AppError(httpStatus.BAD_REQUEST, "User does not exists.")
+    throw new AppError(httpStatus.BAD_REQUEST, "User does not exists.");
   }
 
   return user.toObject();
 };
 
 //anyone can get his own info
-const updatePassword = async (payload:Record<string, string>, decodedToken: JwtPayload) => {
+const updatePassword = async (
+  payload: Record<string, string>,
+  decodedToken: JwtPayload
+) => {
   const ifUserExist = await User.findById(decodedToken.userId);
-  
+
   if (!ifUserExist) {
     throw new AppError(httpStatus.BAD_REQUEST, "User does not exist.");
   }
-  const {newPassword, oldPassword}=payload;
+  const { newPassword, oldPassword } = payload;
 
-  const ifOldPasswordMatch = await bcryptjs.compare(oldPassword,ifUserExist.password);
+  const ifOldPasswordMatch = await bcryptjs.compare(
+    oldPassword,
+    ifUserExist.password
+  );
 
-  if(!ifOldPasswordMatch){
-    throw new AppError(httpStatus.BAD_REQUEST,"Old password does not match.")
+  if (!ifOldPasswordMatch) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Old password does not match.");
   }
 
-  const hashedPassword = await bcryptjs.hash(newPassword,Number(envVars.BCRYPT_SALT));
+  const hashedPassword = await bcryptjs.hash(
+    newPassword,
+    Number(envVars.BCRYPT_SALT)
+  );
 
-  ifUserExist.password=hashedPassword;
+  ifUserExist.password = hashedPassword;
 
   await ifUserExist.save();
 
@@ -194,5 +224,5 @@ export const UserServices = {
   getAllUsers,
   getMe,
   deleteUser,
-  updatePassword
+  updatePassword,
 };

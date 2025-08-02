@@ -20,7 +20,6 @@ router.get('/me', authCheck(...Object.values(IRole)),UserControllers.getMe) //by
 router.patch('/update-password', authCheck(...Object.values(IRole)),validateRequest(updatePasswordZodSchema),UserControllers.updatePassword) //by anyone
 router.patch('/:id',authCheck(...Object.values(IRole)), validateRequest(updateUserZodSchema), UserControllers.updateUser) //any user
 router.get('/:id', authCheck(IRole.ADMIN, IRole.SUPER_ADMIN) ,UserControllers.getSingleUser) //by admin
-//delete is not needed. can be done using admin patch.
 router.delete('/:id', authCheck(IRole.ADMIN, IRole.SUPER_ADMIN), UserControllers.deleteUser)
 
 

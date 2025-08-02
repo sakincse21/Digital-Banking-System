@@ -50,7 +50,7 @@ const createUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
         const user = userArray[0];
         const wallet = yield wallet_model_1.Wallet.create([{ walletId: user.phoneNo, userId: user._id }], { session });
         user.walletId = wallet[0]._id;
-        yield user.save();
+        yield user.save({ session });
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const _a = user.toObject(), { password } = _a, userData = __rest(_a, ["password"]);
         yield session.commitTransaction();
@@ -65,25 +65,41 @@ const createUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
 });
 //any user or agent can update his basic info. and admins can modify the financial info
 const updateUser = (userId, payload, decodedToken) => __awaiter(void 0, void 0, void 0, function* () {
-    if (decodedToken.userId !== userId &&
-        decodedToken.role !== user_interface_1.IRole.ADMIN &&
-        decodedToken.role !== user_interface_1.IRole.SUPER_ADMIN) {
-        throw new appErrorHandler_1.default(http_status_1.default.UNAUTHORIZED, "You are not authorized.");
+    const session = yield user_model_1.User.startSession();
+    session.startTransaction();
+    try {
+        if (decodedToken.userId !== userId &&
+            decodedToken.role !== user_interface_1.IRole.ADMIN &&
+            decodedToken.role !== user_interface_1.IRole.SUPER_ADMIN) {
+            throw new appErrorHandler_1.default(http_status_1.default.UNAUTHORIZED, "You are not authorized.");
+        }
+        const ifUserExist = yield user_model_1.User.findById(userId);
+        if (!ifUserExist) {
+            throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exist.");
+        }
+        const user = yield user_model_1.User.findByIdAndUpdate(ifUserExist._id, payload, [{
+                new: true,
+                runValidators: true,
+                session
+            }]);
+        if (payload.phoneNo) {
+            yield wallet_model_1.Wallet.findByIdAndUpdate(user === null || user === void 0 ? void 0 : user.walletId, { walletId: user === null || user === void 0 ? void 0 : user.phoneNo }, { session });
+        }
+        if (!user) {
+            throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User is not updated. Try again.");
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const _a = user.toObject(), { password } = _a, userData = __rest(_a, ["password"]);
+        yield session.commitTransaction();
+        session.endSession();
+        return userData;
+        return userData;
     }
-    const ifUserExist = yield user_model_1.User.findById(userId);
-    if (!ifUserExist) {
-        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exist.");
+    catch (error) {
+        yield session.abortTransaction();
+        session.endSession();
+        throw error;
     }
-    const user = yield user_model_1.User.findByIdAndUpdate(ifUserExist._id, payload, {
-        new: true,
-        runValidators: true,
-    });
-    if (!user) {
-        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User is not updated. Try again.");
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const _a = user.toObject(), { password } = _a, userData = __rest(_a, ["password"]);
-    return userData;
 });
 //admins can mark anyone as deleted
 const deleteUser = (userId) => __awaiter(void 0, void 0, void 0, function* () {
@@ -157,5 +173,5 @@ exports.UserServices = {
     getAllUsers,
     getMe,
     deleteUser,
-    updatePassword
+    updatePassword,
 };
