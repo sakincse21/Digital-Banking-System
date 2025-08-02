@@ -33,6 +33,7 @@ const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const wallet_model_1 = require("../wallet/wallet.model");
 const user_constant_1 = require("./user.constant");
 const queryBuilder_1 = require("../../utils/queryBuilder");
+//anyone can create a user uing his phone, nid, email and other info
 const createUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const session = yield user_model_1.User.startSession();
     session.startTransaction();
@@ -47,24 +48,22 @@ const createUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
             session,
         });
         const user = userArray[0];
-        const wallet = yield wallet_model_1.Wallet.create([{ userId: user._id }], { session });
+        const wallet = yield wallet_model_1.Wallet.create([{ walletId: user.phoneNo, userId: user._id }], { session });
         user.walletId = wallet[0]._id;
         yield user.save();
-        // Convert to plain object and exclude password
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const _a = user.toObject(), { password } = _a, userData = __rest(_a, ["password"]);
-        //now create default wallet
-        //use transaction
-        yield session.commitTransaction(); //transaction
+        yield session.commitTransaction();
         session.endSession();
         return userData;
     }
     catch (error) {
-        yield session.abortTransaction(); // rollback
+        yield session.abortTransaction();
         session.endSession();
         throw error;
     }
 });
+//any user or agent can update his basic info. and admins can modify the financial info
 const updateUser = (userId, payload, decodedToken) => __awaiter(void 0, void 0, void 0, function* () {
     if (decodedToken.userId !== userId &&
         decodedToken.role !== user_interface_1.IRole.ADMIN &&
@@ -82,11 +81,11 @@ const updateUser = (userId, payload, decodedToken) => __awaiter(void 0, void 0, 
     if (!user) {
         throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User is not updated. Try again.");
     }
-    // Convert to plain object and exclude password
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const _a = user.toObject(), { password } = _a, userData = __rest(_a, ["password"]);
     return userData;
 });
+//admins can mark anyone as deleted
 const deleteUser = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     const ifUserExist = yield user_model_1.User.findById(userId);
     if (!ifUserExist) {
@@ -96,11 +95,11 @@ const deleteUser = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     if (!user) {
         throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User is not updated. Try again.");
     }
-    // Convert to plain object and exclude password
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const _a = user.toObject(), { password } = _a, userData = __rest(_a, ["password"]);
     return userData;
 });
+//admin can get a single user's info
 const getSingleUser = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield user_model_1.User.findById(userId).select("-password");
     if (!user) {
@@ -108,6 +107,7 @@ const getSingleUser = (userId) => __awaiter(void 0, void 0, void 0, function* ()
     }
     return user.toObject();
 });
+//admins can get all users info
 const getAllUsers = (query) => __awaiter(void 0, void 0, void 0, function* () {
     const queryBuilder = new queryBuilder_1.QueryBuilder(user_model_1.User.find(), query);
     const usersData = queryBuilder
@@ -122,14 +122,33 @@ const getAllUsers = (query) => __awaiter(void 0, void 0, void 0, function* () {
     ]);
     return { data, meta };
 });
+//anyone can get his own info
 const getMe = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield user_model_1.User.findById(userId)
         .select("-password")
         .populate("walletId");
     if (!user) {
-        return null;
+        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exists.");
     }
     return user.toObject();
+});
+//anyone can get his own info
+const updatePassword = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, function* () {
+    const ifUserExist = yield user_model_1.User.findById(decodedToken.userId);
+    if (!ifUserExist) {
+        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exist.");
+    }
+    const { newPassword, oldPassword } = payload;
+    const ifOldPasswordMatch = yield bcryptjs_1.default.compare(oldPassword, ifUserExist.password);
+    if (!ifOldPasswordMatch) {
+        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Old password does not match.");
+    }
+    const hashedPassword = yield bcryptjs_1.default.hash(newPassword, Number(env_1.envVars.BCRYPT_SALT));
+    ifUserExist.password = hashedPassword;
+    yield ifUserExist.save();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _a = ifUserExist.toObject(), { password } = _a, userData = __rest(_a, ["password"]);
+    return userData;
 });
 exports.UserServices = {
     createUser,
@@ -138,4 +157,5 @@ exports.UserServices = {
     getAllUsers,
     getMe,
     deleteUser,
+    updatePassword
 };

@@ -9,6 +9,7 @@ const authCheck_1 = require("../../middlewares/authCheck");
 const user_interface_1 = require("../user/user.interface");
 const router = (0, express_1.Router)();
 router.get('/', (0, authCheck_1.authCheck)(user_interface_1.IRole.ADMIN, user_interface_1.IRole.SUPER_ADMIN), wallet_controller_1.WalletControllers.getAllWallets);
+router.get('/wallet-id/:phone', (0, authCheck_1.authCheck)(...Object.values(user_interface_1.IRole)), wallet_controller_1.WalletControllers.getWalletByPhone);
 router.patch('/:id', (0, authCheck_1.authCheck)(user_interface_1.IRole.ADMIN, user_interface_1.IRole.SUPER_ADMIN), (0, validateRequest_1.validateRequest)(wallet_validation_1.updateWalletZodSchema), wallet_controller_1.WalletControllers.updateWallet);
 router.get('/:id', (0, authCheck_1.authCheck)(...Object.values(user_interface_1.IRole)), wallet_controller_1.WalletControllers.getWallet);
 exports.WalletRouter = router;

@@ -30,6 +30,20 @@ const updateUser = catchAsync(async (req: Request, res: Response, next: NextFunc
 })
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
+const updatePassword = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const payload =req.body;
+    const decodedToken = req.user;
+    const user = await UserServices.updatePassword(payload, decodedToken)
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Password Updated Successfully",
+        data: user,
+    })
+})
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const deleteUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.params.id;
     const user = await UserServices.deleteUser(userId)
@@ -87,5 +101,6 @@ export const UserControllers = {
     getSingleUser,
     getAllUsers,
     getMe,
-    deleteUser
+    deleteUser,
+    updatePassword
 }

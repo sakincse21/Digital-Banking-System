@@ -41,6 +41,18 @@ const getWallet = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(voi
     });
 }));
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
+const getWalletByPhone = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const walletId = req.params.phone;
+    const decodedToken = req.user;
+    const wallet = yield wallet_service_1.WalletServices.getWalletByPhone(walletId, decodedToken);
+    (0, sendResponse_1.sendResponse)(res, {
+        success: true,
+        statusCode: http_status_1.default.OK,
+        message: "Wallet Fetched Successfully",
+        data: wallet,
+    });
+}));
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getAllWallets = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const wallet = yield wallet_service_1.WalletServices.getAllWallets();
     (0, sendResponse_1.sendResponse)(res, {
@@ -53,5 +65,6 @@ const getAllWallets = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter
 exports.WalletControllers = {
     updateWallet,
     getWallet,
-    getAllWallets
+    getAllWallets,
+    getWalletByPhone
 };

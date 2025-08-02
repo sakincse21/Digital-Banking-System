@@ -7,6 +7,13 @@ const WalletSchema = new mongoose_1.Schema({
         type: Number,
         min: 0,
         default: 50,
+        required: true
+    },
+    walletId: {
+        type: String,
+        ref: "User",
+        required: true,
+        unique: true
     },
     userId: {
         type: mongoose_1.Schema.Types.ObjectId,

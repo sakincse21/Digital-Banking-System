@@ -39,6 +39,18 @@ const updateUser = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(vo
     });
 }));
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
+const updatePassword = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const payload = req.body;
+    const decodedToken = req.user;
+    const user = yield user_service_1.UserServices.updatePassword(payload, decodedToken);
+    (0, sendResponse_1.sendResponse)(res, {
+        success: true,
+        statusCode: http_status_1.default.OK,
+        message: "Password Updated Successfully",
+        data: user,
+    });
+}));
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const deleteUser = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.params.id;
     const user = yield user_service_1.UserServices.deleteUser(userId);
@@ -88,5 +100,6 @@ exports.UserControllers = {
     getSingleUser,
     getAllUsers,
     getMe,
-    deleteUser
+    deleteUser,
+    updatePassword
 };

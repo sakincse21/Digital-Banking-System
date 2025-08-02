@@ -32,6 +32,20 @@ const getWallet = catchAsync(async (req: Request, res: Response, next: NextFunct
 })
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
+const getWalletByPhone = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const walletId = req.params.phone;
+    const decodedToken = req.user;
+    const wallet = await WalletServices.getWalletByPhone(walletId, decodedToken)
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Wallet Fetched Successfully",
+        data: wallet,
+    })
+})
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getAllWallets = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const wallet = await WalletServices.getAllWallets()
 
@@ -46,5 +60,6 @@ const getAllWallets = catchAsync(async (req: Request, res: Response, next: NextF
 export const WalletControllers = {
     updateWallet,
     getWallet,
-    getAllWallets
+    getAllWallets,
+    getWalletByPhone
 }

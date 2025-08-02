@@ -32,6 +32,7 @@ const UserSchema = new mongoose_1.Schema({
     },
     walletId: {
         type: mongoose_1.Schema.Types.ObjectId,
+        // type: String,
         ref: "Wallet",
         // required: true
     },

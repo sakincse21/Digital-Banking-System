@@ -24,5 +24,6 @@ export interface IUser{
     isVerified: boolean;
     nidNo: string;
     status: IStatus;
+    // walletId: string;
     walletId: Types.ObjectId;
 }

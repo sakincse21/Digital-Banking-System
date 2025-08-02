@@ -1,5 +1,3 @@
-import { Types } from "mongoose";
-
 export enum ITransactionStatus{
     PENDING="PENDING",
     COMPLETED="COMPLETED",
@@ -15,9 +13,9 @@ export enum ITransactionType{
     REFUND="REFUND"
 }
 export interface ITransaction{
-    from: Types.ObjectId;
-    to: Types.ObjectId;
+    from: string;
+    to: string;
     amount: number;
     status: ITransactionStatus;
-    type: ITransactionType
+    type: ITransactionType;
 }

@@ -9,9 +9,11 @@ import {
   ITransactionType,
 } from "./transaction.interface";
 import { User } from "../user/user.model";
-import { agentValidator, anyValidator, userValidator } from "./transaction.utils";
+import { agentValidator, userValidator } from "./transaction.utils";
 import { Wallet } from "../wallet/wallet.model";
+import { amountCheck } from "../../utils/amountChecker";
 
+//anyone can get his own transaction or the admin can get any transaction
 const getSingleTransaction = async (
   transactionId: string,
   decodedToken: JwtPayload
@@ -37,9 +39,10 @@ const getSingleTransaction = async (
       );
     }
   }
-  return ifTransactionExists;
+  return ifTransactionExists.toObject();
 };
 
+//admins can get all the transactions they want
 const getAllTransactions = async (decodedToken: JwtPayload) => {
   const userId = decodedToken.userId;
   let allTransactions;
@@ -54,19 +57,19 @@ const getAllTransactions = async (decodedToken: JwtPayload) => {
     });
   }
 
-
   return allTransactions;
 };
 
-//addmoney te user request korbe, then agent api diye accept korle completed else refunded
+//users can request for add money to any agent. if agent accepts, transaction completes
 const addMoney = async (payload: ITransaction, decodedToken: JwtPayload) => {
   const session = await User.startSession();
   session.startTransaction();
   try {
     const { to: toPhone, type, amount } = payload;
+    amountCheck(amount);
     const ifAgentExists = await User.findOne({ phoneNo: toPhone });
     await agentValidator(ifAgentExists);
-    const agentWallet = await Wallet.findById(ifAgentExists?.walletId)
+    const agentWallet = await Wallet.findById(ifAgentExists?.walletId);
     if (type !== ITransactionType.ADD_MONEY) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
@@ -76,19 +79,24 @@ const addMoney = async (payload: ITransaction, decodedToken: JwtPayload) => {
     const user = await User.findById(decodedToken.userId);
     const userWallet = await Wallet.findById(user?.walletId);
 
-    const transaction = await Transaction.create([{
-      from: decodedToken.userId,
-      to: ifAgentExists?._id,
-      amount,
-      type,
-    }],{session});
+    const transaction = await Transaction.create(
+      [
+        {
+          from: userWallet?.walletId,
+          to: agentWallet?.walletId,
+          amount,
+          type,
+        },
+      ],
+      { session }
+    );
     userWallet?.transactionId.push(transaction[0]._id);
     agentWallet?.transactionId.push(transaction[0]._id);
-    await userWallet?.save({session});
-    await agentWallet?.save({session})
+    await userWallet?.save({ session });
+    await agentWallet?.save({ session });
     await session.commitTransaction();
     session.endSession();
-    return transaction[0];
+    return transaction[0].toObject();
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
@@ -96,6 +104,7 @@ const addMoney = async (payload: ITransaction, decodedToken: JwtPayload) => {
   }
 };
 
+//agent can confirm the add money request send to him from any user.
 const addMoneyConfirm = async (
   transactionId: string,
   decodedToken: JwtPayload
@@ -116,7 +125,7 @@ const addMoneyConfirm = async (
         "Your operation is already completed."
       );
     }
-    const user = await User.findById(ifTransactionExists.from);
+    const user = await User.findOne({ phoneNo: ifTransactionExists.from });
     await userValidator(user);
     const userWallet = await Wallet.findById(user?.walletId);
 
@@ -125,6 +134,14 @@ const addMoneyConfirm = async (
     }
     const agent = await User.findById(decodedToken.userId);
     await agentValidator(agent);
+
+    if (ifTransactionExists.to !== agent?.phoneNo) {
+      throw new AppError(
+        httpStatus.UNAUTHORIZED,
+        "This transaction is not made to you."
+      );
+    }
+
     const agentWallet = await Wallet.findById(agent?.walletId);
 
     if (!agentWallet) {
@@ -134,7 +151,6 @@ const addMoneyConfirm = async (
       ifTransactionExists.status = ITransactionStatus.FAILED;
 
       await ifTransactionExists.save();
-
 
       throw new AppError(
         httpStatus.BAD_REQUEST,
@@ -153,7 +169,7 @@ const addMoneyConfirm = async (
     await session.commitTransaction();
     session.endSession();
 
-    return ifTransactionExists;
+    return ifTransactionExists.toObject();
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
@@ -161,6 +177,7 @@ const addMoneyConfirm = async (
   }
 };
 
+//any user can withdraw money anytime through an agent number
 const withdrawMoney = async (
   payload: ITransaction,
   decodedToken: JwtPayload
@@ -169,6 +186,7 @@ const withdrawMoney = async (
   session.startTransaction();
   try {
     const { to: toPhone, type, amount } = payload;
+    amountCheck(amount);
     const ifAgentExists = await User.findOne({ phoneNo: toPhone });
     await agentValidator(ifAgentExists);
     if (type !== ITransactionType.WITHDRAW) {
@@ -199,8 +217,8 @@ const withdrawMoney = async (
     const transaction = await Transaction.create(
       [
         {
-          from: decodedToken.userId,
-          to: ifAgentExists?._id,
+          from: userWallet.walletId,
+          to: agentWallet.walletId,
           amount,
           type,
           status: ITransactionStatus.COMPLETED,
@@ -225,12 +243,13 @@ const withdrawMoney = async (
   }
 };
 
-//FIX CASHIN
+//an agent can cash in the money to any user anytime
 const cashIn = async (payload: ITransaction, decodedToken: JwtPayload) => {
   const session = await User.startSession();
   session.startTransaction();
   try {
     const { to: toPhone, type, amount } = payload;
+    amountCheck(amount);
     const ifUserExists = await User.findOne({ phoneNo: toPhone });
     await userValidator(ifUserExists);
     if (type !== ITransactionType.CASH_IN) {
@@ -258,8 +277,8 @@ const cashIn = async (payload: ITransaction, decodedToken: JwtPayload) => {
     const transaction = await Transaction.create(
       [
         {
-          from: decodedToken.userId,
-          to: ifUserExists?._id,
+          from: agentWallet.walletId,
+          to: userWallet.walletId,
           amount,
           type,
           status: ITransactionStatus.COMPLETED,
@@ -283,7 +302,7 @@ const cashIn = async (payload: ITransaction, decodedToken: JwtPayload) => {
   }
 };
 
-//FIX sendMoney
+//sendMoney can send any amount to anyone of his role if balance is equal or more.
 const sendMoney = async (payload: ITransaction, decodedToken: JwtPayload) => {
   const session = await User.startSession();
   session.startTransaction();
@@ -332,8 +351,8 @@ const sendMoney = async (payload: ITransaction, decodedToken: JwtPayload) => {
     const transaction = await Transaction.create(
       [
         {
-          from: decodedToken.userId,
-          to: ifReceiverExists?._id,
+          from: senderWallet.walletId,
+          to: receiverWallet.walletId,
           amount,
           type,
           status: ITransactionStatus.COMPLETED,
@@ -357,30 +376,37 @@ const sendMoney = async (payload: ITransaction, decodedToken: JwtPayload) => {
   }
 };
 
-
+//admins can proceed to refund any completed transactions
 const refund = async (transactionId: string) => {
   const session = await User.startSession();
   session.startTransaction();
   try {
     const ifTransactionExists = await Transaction.findById(transactionId);
-    if(!ifTransactionExists){
-        throw new AppError(httpStatus.BAD_REQUEST, "Transaction does not exist.")
+    if (!ifTransactionExists) {
+      throw new AppError(httpStatus.BAD_REQUEST, "Transaction does not exist.");
     }
     const { from: to, to: from, status, amount } = ifTransactionExists;
-    const ifReceiverExists = await User.findById(to)
-    await anyValidator(ifReceiverExists);
-    const ifSenderExists = await User.findById(from)
-    await anyValidator(ifSenderExists);
+    // const ifReceiverExists = await User.findOne({phoneNo:to})
+    // await anyValidator(ifReceiverExists);
+    // const ifSenderExists = await User.findOne({phoneNo:from})
+    // await anyValidator(ifSenderExists);
 
-    if (status===ITransactionStatus.PENDING || status===ITransactionStatus.REFUNDED || status===ITransactionStatus.FAILED) {
+    if (
+      status === ITransactionStatus.PENDING ||
+      status === ITransactionStatus.REFUNDED ||
+      status === ITransactionStatus.FAILED
+    ) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
         "Your operation is not correct."
       );
     }
-    const senderWallet = await Wallet.findById(ifSenderExists?.walletId);
+    const senderWallet = await Wallet.findOne({ walletId: from });
     if (!senderWallet) {
-      throw new AppError(httpStatus.BAD_REQUEST, "Your wallet does not exist.");
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "sender wallet does not exist."
+      );
     }
     if (amount > senderWallet.balance) {
       throw new AppError(
@@ -388,7 +414,7 @@ const refund = async (transactionId: string) => {
         "Sender do not have sufficient balance."
       );
     }
-    const receiverWallet = await Wallet.findById(ifReceiverExists?.walletId);
+    const receiverWallet = await Wallet.findOne({ walletId: to });
     if (!receiverWallet) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
@@ -396,18 +422,16 @@ const refund = async (transactionId: string) => {
       );
     }
 
-    
-    
     receiverWallet.balance = receiverWallet.balance + amount;
     senderWallet.balance = senderWallet.balance - amount;
-    ifTransactionExists.status=ITransactionStatus.REFUNDED;
+    ifTransactionExists.status = ITransactionStatus.REFUNDED;
 
-    ifTransactionExists.save({session})
+    ifTransactionExists.save({ session });
     await senderWallet.save({ session });
     await receiverWallet.save({ session });
     await session.commitTransaction();
     session.endSession();
-    return ifTransactionExists;
+    return ifTransactionExists.toObject();
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
@@ -423,5 +447,5 @@ export const TransactionServices = {
   cashIn,
   sendMoney,
   addMoneyConfirm,
-  refund
+  refund,
 };

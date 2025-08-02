@@ -30,6 +30,7 @@ const UserSchema = new Schema<IUser>({
     },
     walletId: {
         type: Schema.Types.ObjectId,
+        // type: String,
         ref: "Wallet",
         // required: true
     },

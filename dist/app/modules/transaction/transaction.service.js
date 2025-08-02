@@ -21,6 +21,8 @@ const transaction_interface_1 = require("./transaction.interface");
 const user_model_1 = require("../user/user.model");
 const transaction_utils_1 = require("./transaction.utils");
 const wallet_model_1 = require("../wallet/wallet.model");
+const amountChecker_1 = require("../../utils/amountChecker");
+//anyone can get his own transaction or the admin can get any transaction
 const getSingleTransaction = (transactionId, decodedToken) => __awaiter(void 0, void 0, void 0, function* () {
     const ifTransactionExists = yield transaction_model_1.Transaction.findById(transactionId);
     if (!ifTransactionExists) {
@@ -33,8 +35,9 @@ const getSingleTransaction = (transactionId, decodedToken) => __awaiter(void 0, 
             throw new appErrorHandler_1.default(http_status_1.default.UNAUTHORIZED, "You are not permitted for this operation.");
         }
     }
-    return ifTransactionExists;
+    return ifTransactionExists.toObject();
 });
+//admins can get all the transactions they want
 const getAllTransactions = (decodedToken) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = decodedToken.userId;
     let allTransactions;
@@ -49,12 +52,13 @@ const getAllTransactions = (decodedToken) => __awaiter(void 0, void 0, void 0, f
     }
     return allTransactions;
 });
-//addmoney te user request korbe, then agent api diye accept korle completed else refunded
+//users can request for add money to any agent. if agent accepts, transaction completes
 const addMoney = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, function* () {
     const session = yield user_model_1.User.startSession();
     session.startTransaction();
     try {
         const { to: toPhone, type, amount } = payload;
+        (0, amountChecker_1.amountCheck)(amount);
         const ifAgentExists = yield user_model_1.User.findOne({ phoneNo: toPhone });
         yield (0, transaction_utils_1.agentValidator)(ifAgentExists);
         const agentWallet = yield wallet_model_1.Wallet.findById(ifAgentExists === null || ifAgentExists === void 0 ? void 0 : ifAgentExists.walletId);
@@ -63,19 +67,21 @@ const addMoney = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, fu
         }
         const user = yield user_model_1.User.findById(decodedToken.userId);
         const userWallet = yield wallet_model_1.Wallet.findById(user === null || user === void 0 ? void 0 : user.walletId);
-        const transaction = yield transaction_model_1.Transaction.create([{
-                from: decodedToken.userId,
-                to: ifAgentExists === null || ifAgentExists === void 0 ? void 0 : ifAgentExists._id,
+        const transaction = yield transaction_model_1.Transaction.create([
+            {
+                from: userWallet === null || userWallet === void 0 ? void 0 : userWallet.walletId,
+                to: agentWallet === null || agentWallet === void 0 ? void 0 : agentWallet.walletId,
                 amount,
                 type,
-            }], { session });
+            },
+        ], { session });
         userWallet === null || userWallet === void 0 ? void 0 : userWallet.transactionId.push(transaction[0]._id);
         agentWallet === null || agentWallet === void 0 ? void 0 : agentWallet.transactionId.push(transaction[0]._id);
         yield (userWallet === null || userWallet === void 0 ? void 0 : userWallet.save({ session }));
         yield (agentWallet === null || agentWallet === void 0 ? void 0 : agentWallet.save({ session }));
         yield session.commitTransaction();
         session.endSession();
-        return transaction[0];
+        return transaction[0].toObject();
     }
     catch (error) {
         yield session.abortTransaction();
@@ -83,6 +89,7 @@ const addMoney = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, fu
         throw error;
     }
 });
+//agent can confirm the add money request send to him from any user.
 const addMoneyConfirm = (transactionId, decodedToken) => __awaiter(void 0, void 0, void 0, function* () {
     const session = yield user_model_1.User.startSession();
     session.startTransaction();
@@ -94,7 +101,7 @@ const addMoneyConfirm = (transactionId, decodedToken) => __awaiter(void 0, void 
         if ((ifTransactionExists === null || ifTransactionExists === void 0 ? void 0 : ifTransactionExists.status) === transaction_interface_1.ITransactionStatus.COMPLETED) {
             throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Your operation is already completed.");
         }
-        const user = yield user_model_1.User.findById(ifTransactionExists.from);
+        const user = yield user_model_1.User.findOne({ phoneNo: ifTransactionExists.from });
         yield (0, transaction_utils_1.userValidator)(user);
         const userWallet = yield wallet_model_1.Wallet.findById(user === null || user === void 0 ? void 0 : user.walletId);
         if (!userWallet) {
@@ -102,6 +109,9 @@ const addMoneyConfirm = (transactionId, decodedToken) => __awaiter(void 0, void 
         }
         const agent = yield user_model_1.User.findById(decodedToken.userId);
         yield (0, transaction_utils_1.agentValidator)(agent);
+        if (ifTransactionExists.to !== (agent === null || agent === void 0 ? void 0 : agent.phoneNo)) {
+            throw new appErrorHandler_1.default(http_status_1.default.UNAUTHORIZED, "This transaction is not made to you.");
+        }
         const agentWallet = yield wallet_model_1.Wallet.findById(agent === null || agent === void 0 ? void 0 : agent.walletId);
         if (!agentWallet) {
             throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Your wallet does not exist.");
@@ -119,7 +129,7 @@ const addMoneyConfirm = (transactionId, decodedToken) => __awaiter(void 0, void 
         yield userWallet.save({ session });
         yield session.commitTransaction();
         session.endSession();
-        return ifTransactionExists;
+        return ifTransactionExists.toObject();
     }
     catch (error) {
         yield session.abortTransaction();
@@ -127,11 +137,13 @@ const addMoneyConfirm = (transactionId, decodedToken) => __awaiter(void 0, void 
         throw error;
     }
 });
+//any user can withdraw money anytime through an agent number
 const withdrawMoney = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, function* () {
     const session = yield user_model_1.User.startSession();
     session.startTransaction();
     try {
         const { to: toPhone, type, amount } = payload;
+        (0, amountChecker_1.amountCheck)(amount);
         const ifAgentExists = yield user_model_1.User.findOne({ phoneNo: toPhone });
         yield (0, transaction_utils_1.agentValidator)(ifAgentExists);
         if (type !== transaction_interface_1.ITransactionType.WITHDRAW) {
@@ -151,8 +163,8 @@ const withdrawMoney = (payload, decodedToken) => __awaiter(void 0, void 0, void 
         }
         const transaction = yield transaction_model_1.Transaction.create([
             {
-                from: decodedToken.userId,
-                to: ifAgentExists === null || ifAgentExists === void 0 ? void 0 : ifAgentExists._id,
+                from: userWallet.walletId,
+                to: agentWallet.walletId,
                 amount,
                 type,
                 status: transaction_interface_1.ITransactionStatus.COMPLETED,
@@ -172,12 +184,13 @@ const withdrawMoney = (payload, decodedToken) => __awaiter(void 0, void 0, void 
         throw error;
     }
 });
-//FIX CASHIN
+//an agent can cash in the money to any user anytime
 const cashIn = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, function* () {
     const session = yield user_model_1.User.startSession();
     session.startTransaction();
     try {
         const { to: toPhone, type, amount } = payload;
+        (0, amountChecker_1.amountCheck)(amount);
         const ifUserExists = yield user_model_1.User.findOne({ phoneNo: toPhone });
         yield (0, transaction_utils_1.userValidator)(ifUserExists);
         if (type !== transaction_interface_1.ITransactionType.CASH_IN) {
@@ -197,8 +210,8 @@ const cashIn = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, func
         }
         const transaction = yield transaction_model_1.Transaction.create([
             {
-                from: decodedToken.userId,
-                to: ifUserExists === null || ifUserExists === void 0 ? void 0 : ifUserExists._id,
+                from: agentWallet.walletId,
+                to: userWallet.walletId,
                 amount,
                 type,
                 status: transaction_interface_1.ITransactionStatus.COMPLETED,
@@ -218,7 +231,7 @@ const cashIn = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, func
         throw error;
     }
 });
-//FIX sendMoney
+//sendMoney can send any amount to anyone of his role if balance is equal or more.
 const sendMoney = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, function* () {
     const session = yield user_model_1.User.startSession();
     session.startTransaction();
@@ -249,8 +262,8 @@ const sendMoney = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, f
         }
         const transaction = yield transaction_model_1.Transaction.create([
             {
-                from: decodedToken.userId,
-                to: ifReceiverExists === null || ifReceiverExists === void 0 ? void 0 : ifReceiverExists._id,
+                from: senderWallet.walletId,
+                to: receiverWallet.walletId,
                 amount,
                 type,
                 status: transaction_interface_1.ITransactionStatus.COMPLETED,
@@ -270,6 +283,7 @@ const sendMoney = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, f
         throw error;
     }
 });
+//admins can proceed to refund any completed transactions
 const refund = (transactionId) => __awaiter(void 0, void 0, void 0, function* () {
     const session = yield user_model_1.User.startSession();
     session.startTransaction();
@@ -279,21 +293,23 @@ const refund = (transactionId) => __awaiter(void 0, void 0, void 0, function* ()
             throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Transaction does not exist.");
         }
         const { from: to, to: from, status, amount } = ifTransactionExists;
-        const ifReceiverExists = yield user_model_1.User.findById(to);
-        yield (0, transaction_utils_1.anyValidator)(ifReceiverExists);
-        const ifSenderExists = yield user_model_1.User.findById(from);
-        yield (0, transaction_utils_1.anyValidator)(ifSenderExists);
-        if (status === transaction_interface_1.ITransactionStatus.PENDING || status === transaction_interface_1.ITransactionStatus.REFUNDED || status === transaction_interface_1.ITransactionStatus.FAILED) {
+        // const ifReceiverExists = await User.findOne({phoneNo:to})
+        // await anyValidator(ifReceiverExists);
+        // const ifSenderExists = await User.findOne({phoneNo:from})
+        // await anyValidator(ifSenderExists);
+        if (status === transaction_interface_1.ITransactionStatus.PENDING ||
+            status === transaction_interface_1.ITransactionStatus.REFUNDED ||
+            status === transaction_interface_1.ITransactionStatus.FAILED) {
             throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Your operation is not correct.");
         }
-        const senderWallet = yield wallet_model_1.Wallet.findById(ifSenderExists === null || ifSenderExists === void 0 ? void 0 : ifSenderExists.walletId);
+        const senderWallet = yield wallet_model_1.Wallet.findOne({ walletId: from });
         if (!senderWallet) {
-            throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Your wallet does not exist.");
+            throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "sender wallet does not exist.");
         }
         if (amount > senderWallet.balance) {
             throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Sender do not have sufficient balance.");
         }
-        const receiverWallet = yield wallet_model_1.Wallet.findById(ifReceiverExists === null || ifReceiverExists === void 0 ? void 0 : ifReceiverExists.walletId);
+        const receiverWallet = yield wallet_model_1.Wallet.findOne({ walletId: to });
         if (!receiverWallet) {
             throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Receiver wallet does not exist.");
         }
@@ -305,7 +321,7 @@ const refund = (transactionId) => __awaiter(void 0, void 0, void 0, function* ()
         yield receiverWallet.save({ session });
         yield session.commitTransaction();
         session.endSession();
-        return ifTransactionExists;
+        return ifTransactionExists.toObject();
     }
     catch (error) {
         yield session.abortTransaction();
@@ -321,5 +337,5 @@ exports.TransactionServices = {
     cashIn,
     sendMoney,
     addMoneyConfirm,
-    refund
+    refund,
 };

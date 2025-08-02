@@ -6,6 +6,13 @@ const WalletSchema = new Schema<IWallet>({
         type: Number,
         min: 0,
         default: 50,
+        required: true
+    },
+    walletId:{
+        type: String,
+        ref: "User",
+        required: true,
+        unique: true
     },
     userId:{
         type: Schema.Types.ObjectId,

@@ -6,32 +6,32 @@ import { JwtPayload } from "jsonwebtoken";
 import { IRole } from "../user/user.interface";
 import { User } from "../user/user.model";
 
+
+//admins can update wallet's walletId(phone) and balance
 const updateWallet = async (
   walletId: string,
   payload: Partial<IWallet>
 ) => {
-  const ifUserExist = await Wallet.findById(walletId);
+  const ifWalletExist = await Wallet.findById(walletId);
 
-  if (!ifUserExist) {
+  if (!ifWalletExist) {
     throw new AppError(httpStatus.BAD_REQUEST, "User does not exist.");
   }
 
-  const wallet = await Wallet.findByIdAndUpdate(ifUserExist._id, payload, {
-    new: true,
-    runValidators: true,
-  });
-
-  if (!wallet) {
-    throw new AppError(
-      httpStatus.BAD_REQUEST,
-      "Wallet is not updated. Try again."
-    );
+  if(payload.walletId){
+    ifWalletExist.walletId=payload.walletId;
+  }
+  if(payload.balance){
+    ifWalletExist.balance=payload.balance;
   }
 
+  await ifWalletExist.save();
 
-  return wallet;
+
+  return ifWalletExist.toObject;
 };
 
+//anyone can get his wallet info and admins can get anyones wallet info
 const getSingleWallet = async (walletId: string, decodedToken: JwtPayload) => {
     const ifUserExists = await User.findById(decodedToken.userId);
     if(!ifUserExists){
@@ -50,9 +50,32 @@ const getSingleWallet = async (walletId: string, decodedToken: JwtPayload) => {
     throw new AppError(httpStatus.BAD_REQUEST, "Wallet does not exist.");
   }
 
-  return wallet;
+  return wallet.toObject();
 };
 
+//anyone can get his wallet info and admins can get anyones wallet info
+const getWalletByPhone = async (walletId: string, decodedToken: JwtPayload) => {
+    const ifUserExists = await User.findById(decodedToken.userId);
+    if(!ifUserExists){
+        throw new AppError(httpStatus.BAD_REQUEST, "User does not exist.")
+    }
+    
+    const wallet = await Wallet.findOne({walletId}).populate("transactionId")
+    
+      if (!wallet) {
+        throw new AppError(httpStatus.BAD_REQUEST, "Wallet does not exist.");
+      }
+    
+    if(ifUserExists.role !== IRole.ADMIN && ifUserExists.role!== IRole.SUPER_ADMIN){
+        if(ifUserExists.walletId.toString() !== wallet?._id.toString()){
+            throw new AppError(httpStatus.UNAUTHORIZED, "You do not have permission for this operation.")
+        }
+    }
+
+  return wallet.toObject();
+};
+
+//admins can get all wallets info
 const getAllWallets = async () => {
   const wallets = await Wallet.find({})
 
@@ -62,5 +85,6 @@ const getAllWallets = async () => {
 export const WalletServices = {
     updateWallet,
     getSingleWallet,
-    getAllWallets
+    getAllWallets,
+    getWalletByPhone
 }
