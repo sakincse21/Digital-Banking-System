@@ -117,7 +117,7 @@ const deleteUser = (userId) => __awaiter(void 0, void 0, void 0, function* () {
 });
 //admin can get a single user's info
 const getSingleUser = (userId) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield user_model_1.User.findById(userId).select("-password");
+    const user = yield user_model_1.User.findById(userId).select("-password").populate("walletId");
     if (!user) {
         throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exist.");
     }

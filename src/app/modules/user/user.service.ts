@@ -141,14 +141,13 @@ const deleteUser = async (userId: string) => {
 
 //admin can get a single user's info
 const getSingleUser = async (userId: string) => {
-  const user = await User.findById(userId).select("-password");
+  const user = await User.findById(userId).select("-password").populate("walletId");
 
   if (!user) {
     throw new AppError(httpStatus.BAD_REQUEST, "User does not exist.");
   }
 
-  const userData = await user.populate("walletId")
-  return userData.toObject();
+  return user.toObject();
 };
 
 //admins can get all users info
