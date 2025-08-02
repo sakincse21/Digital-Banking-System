@@ -77,11 +77,11 @@ const updateUser = (userId, payload, decodedToken) => __awaiter(void 0, void 0, 
         if (!ifUserExist) {
             throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exist.");
         }
-        const user = yield user_model_1.User.findByIdAndUpdate(ifUserExist._id, payload, [{
-                new: true,
-                runValidators: true,
-                session
-            }]);
+        const user = yield user_model_1.User.findByIdAndUpdate(ifUserExist._id, payload, {
+            new: true,
+            runValidators: true,
+            session
+        });
         if (payload.phoneNo) {
             yield wallet_model_1.Wallet.findByIdAndUpdate(user === null || user === void 0 ? void 0 : user.walletId, { walletId: user === null || user === void 0 ? void 0 : user.phoneNo }, { session });
         }
