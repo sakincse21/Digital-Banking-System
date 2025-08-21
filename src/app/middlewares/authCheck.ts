@@ -7,8 +7,7 @@ import { User } from "../modules/user/user.model";
 import { IStatus } from "../modules/user/user.interface";
 
 export const authCheck = (...authRoles: string[]) => catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-
-    const accessToken = req.headers.authorization;
+    const accessToken = req.headers.authorization || req.cookies.accessToken;
     // const accessToken = req.cookies?.accessToken;
 
     

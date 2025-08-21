@@ -11,6 +11,10 @@ const login = async (payload:Record<string,string>)=>{
         throw new AppError(httpStatus.BAD_REQUEST, "User does not exist. Register first.")
     }
 
+    if(ifUserExists.isVerified===false){
+        throw new AppError(httpStatus.BAD_REQUEST, "User is not verified yet.")
+    }
+
     const passComparison = await bcrypt.compare(payload.password, ifUserExists.password)
 
     if(!passComparison){

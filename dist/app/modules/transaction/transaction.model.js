@@ -30,6 +30,9 @@ const TransactionSchema = new mongoose_1.Schema({
         required: true,
         default: transaction_interface_1.ITransactionStatus.PENDING
     }
+}, {
+    timestamps: true,
+    versionKey: false
 });
 // TransactionSchema.pre("save", async function (next) {
 //   const transaction = this as ITransaction;

@@ -18,7 +18,20 @@ const login = catchAsync(async (req: Request, res: Response, next: NextFunction)
         data: {...user, accessToken}
     })
 })
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const logout = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+
+    setAuthCookie(res,"")
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "User Logged Out Successfully",
+        data: null
+    })
+})
 
 export const AuthControllers = {
-    login
+    login,
+    logout
 }

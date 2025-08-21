@@ -34,6 +34,9 @@ const login = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     if (!ifUserExists) {
         throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exist. Register first.");
     }
+    if (ifUserExists.isVerified === false) {
+        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User is not verified yet.");
+    }
     const passComparison = yield bcryptjs_1.default.compare(payload.password, ifUserExists.password);
     if (!passComparison) {
         throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Password does not match.");

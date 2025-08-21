@@ -28,6 +28,9 @@ const TransactionSchema = new Schema<ITransaction>({
         required: true,
         default: ITransactionStatus.PENDING
     }
+},{
+    timestamps:true,
+    versionKey: false
 })
 
 // TransactionSchema.pre("save", async function (next) {

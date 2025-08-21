@@ -22,6 +22,8 @@ const user_model_1 = require("../user/user.model");
 const transaction_utils_1 = require("./transaction.utils");
 const wallet_model_1 = require("../wallet/wallet.model");
 const amountChecker_1 = require("../../utils/amountChecker");
+const queryBuilder_1 = require("../../utils/queryBuilder");
+const transaction_constant_1 = require("./transaction.constant");
 //anyone can get his own transaction or the admin can get any transaction
 const getSingleTransaction = (transactionId, decodedToken) => __awaiter(void 0, void 0, void 0, function* () {
     const ifTransactionExists = yield transaction_model_1.Transaction.findById(transactionId);
@@ -38,24 +40,41 @@ const getSingleTransaction = (transactionId, decodedToken) => __awaiter(void 0, 
     return ifTransactionExists.toObject();
 });
 //admins can get all the transactions or users can view their own all transactions
-const getAllTransactions = (decodedToken) => __awaiter(void 0, void 0, void 0, function* () {
+const getAllTransactions = (decodedToken, query) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = decodedToken.userId;
     const ifUserExists = yield user_model_1.User.findById(userId);
     if (!ifUserExists) {
         throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exists.");
     }
     const walletId = ifUserExists.phoneNo;
-    let allTransactions;
+    // let allTransactions;
+    let params;
     if (decodedToken.role === user_interface_1.IRole.ADMIN ||
         decodedToken.role === user_interface_1.IRole.SUPER_ADMIN) {
-        allTransactions = yield transaction_model_1.Transaction.find({});
+        // allTransactions = await Transaction.find({});
+        params = {};
     }
     else {
-        allTransactions = yield transaction_model_1.Transaction.find({
+        // allTransactions = await Transaction.find({
+        //   $or: [{ from: walletId }, { to: walletId }],
+        // });
+        params = {
             $or: [{ from: walletId }, { to: walletId }],
-        });
+        };
     }
-    return allTransactions;
+    const queryBuilder = new queryBuilder_1.QueryBuilder(transaction_model_1.Transaction.find(params), query);
+    const usersData = queryBuilder
+        .filter()
+        .search(transaction_constant_1.transactionSearchableFields)
+        .sort()
+        .fields()
+        .paginate();
+    const [data, meta] = yield Promise.all([
+        usersData.build(),
+        queryBuilder.getMeta(),
+    ]);
+    return { data, meta };
+    // return allTransactions;
 });
 //users can request for add money to any agent. if agent accepts, transaction completes
 const addMoney = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, function* () {

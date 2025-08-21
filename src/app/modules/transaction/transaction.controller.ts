@@ -21,7 +21,8 @@ const getSingleTransaction = catchAsync(async (req: Request, res: Response, next
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getAllTransactions = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const decodedToken = req.user;
-    const allTransactions = await TransactionServices.getAllTransactions(decodedToken)
+    const query = req.query;
+    const allTransactions = await TransactionServices.getAllTransactions(decodedToken, query as Record<string, string>)
 
     sendResponse(res, {
         success: true,

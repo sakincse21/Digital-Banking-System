@@ -29,6 +29,17 @@ const login = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0,
         data: Object.assign(Object.assign({}, user), { accessToken })
     });
 }));
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const logout = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    (0, setAuthCookies_1.setAuthCookie)(res, "");
+    (0, sendResponse_1.sendResponse)(res, {
+        success: true,
+        statusCode: http_status_1.default.OK,
+        message: "User Logged Out Successfully",
+        data: null
+    });
+}));
 exports.AuthControllers = {
-    login
+    login,
+    logout
 };

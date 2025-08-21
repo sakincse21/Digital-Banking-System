@@ -32,7 +32,8 @@ const getSingleTransaction = (0, catchAsync_1.catchAsync)((req, res, next) => __
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getAllTransactions = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const decodedToken = req.user;
-    const allTransactions = yield transaction_service_1.TransactionServices.getAllTransactions(decodedToken);
+    const query = req.query;
+    const allTransactions = yield transaction_service_1.TransactionServices.getAllTransactions(decodedToken, query);
     (0, sendResponse_1.sendResponse)(res, {
         success: true,
         statusCode: http_status_1.default.OK,

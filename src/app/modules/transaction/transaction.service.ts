@@ -12,6 +12,8 @@ import { User } from "../user/user.model";
 import { agentValidator, userValidator } from "./transaction.utils";
 import { Wallet } from "../wallet/wallet.model";
 import { amountCheck } from "../../utils/amountChecker";
+import { QueryBuilder } from "../../utils/queryBuilder";
+import { transactionSearchableFields } from "./transaction.constant";
 
 //anyone can get his own transaction or the admin can get any transaction
 const getSingleTransaction = async (
@@ -43,26 +45,49 @@ const getSingleTransaction = async (
 };
 
 //admins can get all the transactions or users can view their own all transactions
-const getAllTransactions = async (decodedToken: JwtPayload) => {
+const getAllTransactions = async (
+  decodedToken: JwtPayload,
+  query: Record<string, string>
+) => {
   const userId = decodedToken.userId;
-  const ifUserExists = await User.findById(userId)
-  if(!ifUserExists){
-    throw new AppError(httpStatus.BAD_REQUEST, "User does not exists.")
+  const ifUserExists = await User.findById(userId);
+  if (!ifUserExists) {
+    throw new AppError(httpStatus.BAD_REQUEST, "User does not exists.");
   }
-  const walletId = ifUserExists.phoneNo
-  let allTransactions;
+  const walletId = ifUserExists.phoneNo;
+  // let allTransactions;
+  let params;
   if (
     decodedToken.role === IRole.ADMIN ||
     decodedToken.role === IRole.SUPER_ADMIN
   ) {
-    allTransactions = await Transaction.find({});
+    // allTransactions = await Transaction.find({});
+    params = {};
   } else {
-    allTransactions = await Transaction.find({
+    // allTransactions = await Transaction.find({
+    //   $or: [{ from: walletId }, { to: walletId }],
+    // });
+    params = {
       $or: [{ from: walletId }, { to: walletId }],
-    });
+    };
   }
 
-  return allTransactions;
+  const queryBuilder = new QueryBuilder(Transaction.find(params), query);
+  const usersData = queryBuilder
+    .filter()
+    .search(transactionSearchableFields)
+    .sort()
+    .fields()
+    .paginate();
+
+  const [data, meta] = await Promise.all([
+    usersData.build(),
+    queryBuilder.getMeta(),
+  ]);
+
+  return { data, meta };
+
+  // return allTransactions;
 };
 
 //users can request for add money to any agent. if agent accepts, transaction completes
