@@ -50,7 +50,8 @@ const addMoney = catchAsync(async (req: Request, res: Response, next: NextFuncti
 const addMoneyConfirm = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const decodedToken = req.user;
     const transactionId = req.params.id;
-    const transaction = await TransactionServices.addMoneyConfirm(transactionId,decodedToken)
+    const payload = req.body;
+    const transaction = await TransactionServices.addMoneyConfirm(transactionId,decodedToken, payload)
 
     sendResponse(res, {
         success: true,

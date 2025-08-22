@@ -137,7 +137,8 @@ const addMoney = async (payload: ITransaction, decodedToken: JwtPayload) => {
 //agent can confirm the add money request send to him from any user.
 const addMoneyConfirm = async (
   transactionId: string,
-  decodedToken: JwtPayload
+  decodedToken: JwtPayload,
+  payload: { consent: string }
 ) => {
   const session = await User.startSession();
   session.startTransaction();
@@ -149,10 +150,10 @@ const addMoneyConfirm = async (
         "Your operation is not correct."
       );
     }
-    if (ifTransactionExists?.status === ITransactionStatus.COMPLETED) {
+    if (ifTransactionExists?.status !== ITransactionStatus.PENDING) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
-        "Your operation is already completed."
+        "Your operation is already processed."
       );
     }
     const user = await User.findOne({ phoneNo: ifTransactionExists.from });
@@ -177,24 +178,29 @@ const addMoneyConfirm = async (
     if (!agentWallet) {
       throw new AppError(httpStatus.BAD_REQUEST, "Your wallet does not exist.");
     }
-    if (ifTransactionExists.amount > agentWallet.balance) {
+
+    if (!payload.consent) {
       ifTransactionExists.status = ITransactionStatus.FAILED;
+    } else {
+      if (ifTransactionExists.amount > agentWallet.balance) {
+        ifTransactionExists.status = ITransactionStatus.FAILED;
 
-      await ifTransactionExists.save();
+        await ifTransactionExists.save();
 
-      throw new AppError(
-        httpStatus.BAD_REQUEST,
-        "You do not have sufficient balance."
-      );
+        throw new AppError(
+          httpStatus.BAD_REQUEST,
+          "You do not have sufficient balance."
+        );
+      }
+
+      userWallet.balance = userWallet.balance + ifTransactionExists.amount;
+      agentWallet.balance = agentWallet.balance - ifTransactionExists.amount;
+      ifTransactionExists.status = ITransactionStatus.COMPLETED;
+      await agentWallet.save({ session });
+      await userWallet.save({ session });
     }
 
-    userWallet.balance = userWallet.balance + ifTransactionExists.amount;
-    agentWallet.balance = agentWallet.balance - ifTransactionExists.amount;
-    ifTransactionExists.status = ITransactionStatus.COMPLETED;
-
     await ifTransactionExists.save({ session });
-    await agentWallet.save({ session });
-    await userWallet.save({ session });
 
     await session.commitTransaction();
     session.endSession();
