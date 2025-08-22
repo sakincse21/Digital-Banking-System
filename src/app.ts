@@ -4,12 +4,13 @@ import { AppRouter } from "./app/routes";
 import { globalErrorHandler } from "./app/middlewares/globalErrorHandler";
 import notFound from "./app/middlewares/notFound";
 import cookieParser from "cookie-parser";
+import { envVars } from "./app/config/env";
 
 const app = express();
 
 app.use(express.json());
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: envVars.FRONTEND_URL,
   credentials: true,
 }));
 app.use(express.urlencoded({extended: true}));

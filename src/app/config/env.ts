@@ -14,11 +14,15 @@ interface IEnvConfig {
   SUPER_ADMIN_PHONENO: string;
   SUPER_ADMIN_NIDNO: string;
   SUPER_ADMIN_NAME: string;
+  FRONTEND_URL: string;
 
 }
 
 const loadEnvVariables = (): IEnvConfig => {
-  const requiredEnvVariables: string[] = ["PORT", "MONGODB_URL", "NODE_ENV", "BCRYPT_SALT", "JWT_SECRET", "JWT_EXPIRE", "SUPER_ADMIN_PASSWORD", "SUPER_ADMIN_EMAIL","SUPER_ADMIN_NAME","SUPER_ADMIN_PHONENO","SUPER_ADMIN_NIDNO"];
+  const requiredEnvVariables: string[] = ["PORT", "MONGODB_URL", "NODE_ENV",
+    "BCRYPT_SALT", "JWT_SECRET", "JWT_EXPIRE", "SUPER_ADMIN_PASSWORD",
+    "SUPER_ADMIN_EMAIL","SUPER_ADMIN_NAME","SUPER_ADMIN_PHONENO",
+    "SUPER_ADMIN_NIDNO","FRONTEND_URL"];
   requiredEnvVariables.forEach((key) => {
     if (!process.env[key]) {
       throw new Error(`Missing required environment variable ${key}`);
@@ -36,7 +40,8 @@ const loadEnvVariables = (): IEnvConfig => {
     SUPER_ADMIN_EMAIL: process.env.SUPER_ADMIN_EMAIL as string,
     SUPER_ADMIN_NAME: process.env.SUPER_ADMIN_NAME as string,
     SUPER_ADMIN_NIDNO: process.env.SUPER_ADMIN_NIDNO as string,
-    SUPER_ADMIN_PHONENO: process.env.SUPER_ADMIN_PHONENO as string
+    SUPER_ADMIN_PHONENO: process.env.SUPER_ADMIN_PHONENO as string,
+    FRONTEND_URL: process.env.FRONTEND_URL as string,
   };
 };
 
