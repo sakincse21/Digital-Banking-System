@@ -43,7 +43,7 @@ const UserSchema = new Schema<IUser>({
         type: String,
         enum: Object.values(IRole),
         required: true,
-        default: IRole.USER
+        // default: IRole.USER
     },
     status: {
         type: String,
