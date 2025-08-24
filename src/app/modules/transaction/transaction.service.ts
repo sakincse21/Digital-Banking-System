@@ -43,6 +43,49 @@ const getSingleTransaction = async (
   }
   return ifTransactionExists.toObject();
 };
+//anyone can get his own transaction or the admin can get any transaction
+const getSummary = async (decodedToken: JwtPayload) => {
+  const userId = decodedToken.userId;
+  const ifUserExists = await User.findById(userId);
+  if (!ifUserExists) {
+    throw new AppError(httpStatus.BAD_REQUEST, "User does not exists.");
+  }
+  const walletId = ifUserExists.phoneNo;
+  // const userTransactions = Transaction.find({
+  //     $or: [{ from: walletId }, { to: walletId }],
+  //   });
+  const pastDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+  const summaryData = await Transaction.aggregate([
+    //search user
+    {
+      $match: {
+        $and: [
+          { $or: [{ from: walletId }, { to: walletId }] },
+          { updatedAt: { $gte: pastDate } }
+        ]
+      },
+    },
+    //grouping based on type
+    {
+      $group: {
+        _id: "$type",
+        count: { $sum: 1 },
+        totalAmount: { $sum: "$amount" },
+      },
+    },
+    //projection with field names
+    {
+      $project: {
+        Type: "$_id",
+        Amount: "$totalAmount",
+        Volume: "$count",
+        _id: 0,
+      },
+    },
+  ]);
+  return summaryData;
+};
 
 //admins can get all the transactions or users can view their own all transactions
 const getAllTransactions = async (
@@ -72,6 +115,7 @@ const getAllTransactions = async (
     };
   }
 
+  // console.log("test query",query)
   const queryBuilder = new QueryBuilder(Transaction.find(params), query);
   const usersData = queryBuilder
     .filter()
@@ -484,4 +528,5 @@ export const TransactionServices = {
   sendMoney,
   addMoneyConfirm,
   refund,
+  getSummary,
 };

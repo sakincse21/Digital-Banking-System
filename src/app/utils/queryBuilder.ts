@@ -1,5 +1,5 @@
 import { Query } from "mongoose";
-export const excludeField = ["searchTerm", "sort", "fields", "page", "limit"];
+export const excludeField = ["searchTerm", "sort", "fields", "page", "limit","sortBy"];
 
 export class QueryBuilder<T> {
   public modelQuery: Query<T[], T>;
@@ -12,19 +12,69 @@ export class QueryBuilder<T> {
     this.query = query;
   }
 
-  filter(): this {
-    const filter = { ...this.query };
+  // filter(): this {
+  //   const filter = { ...this.query };
 
-    for (const field of excludeField) {
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-      delete filter[field];
+  //   for (const field of excludeField) {
+  //     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+  //     delete filter[field];
+  //   }
+
+  //   if (filter.startDate || filter.endDate) {
+  //   const dateFilter: Record<string, unknown> = {};
+  //   if (filter.startDate) {
+  //     dateFilter["$gte"] = new Date(filter.startDate);
+  //   }
+  //   if (filter.endDate) {
+  //     dateFilter["$lte"] = new Date(filter.endDate);
+  //   }
+
+    
+  //   (filter as any).modifiedAt = dateFilter;
+    
+  //   delete filter.startDate;
+  //   delete filter.endDate;
+  // }
+  // console.log(filter);
+
+  //   this.modelQuery = this.modelQuery.find(filter);
+  //   this.baseQuery = this.baseQuery.find(filter); // Apply same filter to base query
+
+  //   return this;
+  // }
+
+  filter(): this {
+  const filter = { ...this.query };
+
+  for (const field of excludeField) {
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete filter[field];
+  }
+
+  // Handle date range filtering
+  if (filter.startDate || filter.endDate) {
+    const dateFilter: Record<string, unknown> = {};
+    if (filter.startDate) {
+      dateFilter["$gte"] = new Date(filter.startDate);
+    }
+    if (filter.endDate) {
+      dateFilter["$lte"] = new Date(filter.endDate);
     }
 
-    this.modelQuery = this.modelQuery.find(filter);
-    this.baseQuery = this.baseQuery.find(filter); // Apply same filter to base query
+    // Assuming your schema has a field like createdAt
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (filter as any).createdAt = dateFilter;
 
-    return this;
+    delete filter.startDate;
+    delete filter.endDate;
   }
+
+  this.modelQuery = this.modelQuery.find(filter);
+  this.baseQuery = this.baseQuery.find(filter);
+
+  return this;
+}
+
 
   search(searchableField: string[]): this {
     const searchTerm = this.query.searchTerm;
@@ -41,7 +91,8 @@ export class QueryBuilder<T> {
   }
 
   sort(): this {
-    const sort = this.query.sort || "-createdAt";
+    const sortBy = this.query.sortBy;
+    const sort = this.query.sort && sortBy? (this.query.sort === 'asc' ? `${sortBy}`:`-${sortBy}`) : "-updatedAt";
     this.modelQuery = this.modelQuery.sort(sort);
     return this;
   }

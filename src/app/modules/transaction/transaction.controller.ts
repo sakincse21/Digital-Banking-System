@@ -19,6 +19,19 @@ const getSingleTransaction = catchAsync(async (req: Request, res: Response, next
 })
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
+const getSummary = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const decodedToken = req.user;
+    const transaction = await TransactionServices.getSummary(decodedToken)
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Transactions Summary Fetched Successfully",
+        data: transaction,
+    })
+})
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getAllTransactions = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const decodedToken = req.user;
     const query = req.query;
@@ -127,5 +140,6 @@ export const TransactionControllers = {
     cashIn,
     sendMoney,
     addMoneyConfirm,
-    refund
+    refund,
+    getSummary
 }

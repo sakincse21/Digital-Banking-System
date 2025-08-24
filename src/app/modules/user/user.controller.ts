@@ -70,6 +70,19 @@ const getSingleUser = catchAsync(async (req: Request, res: Response, next: NextF
 })
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
+const searchUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const phoneNo = req.params.phoneNo;
+    const user = await UserServices.searchUser(phoneNo)
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "User Fetched Successfully",
+        data: user,
+    })
+})
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getAllUsers = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const query = req.query;
     const user = await UserServices.getAllUsers(query as Record<string, string>)
@@ -102,5 +115,6 @@ export const UserControllers = {
     getAllUsers,
     getMe,
     deleteUser,
-    updatePassword
+    updatePassword,
+    searchUser
 }
