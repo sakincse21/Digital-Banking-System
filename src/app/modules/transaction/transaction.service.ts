@@ -2,7 +2,7 @@ import { JwtPayload } from "jsonwebtoken";
 import { Transaction } from "./transaction.model";
 import AppError from "../../errorHelpers/appErrorHandler";
 import httpStatus from "http-status";
-import { IRole } from "../user/user.interface";
+import { IRole, IStatus } from "../user/user.interface";
 import {
   ITransaction,
   ITransactionStatus,
@@ -62,8 +62,8 @@ const getSummary = async (decodedToken: JwtPayload) => {
       $match: {
         $and: [
           { $or: [{ from: walletId }, { to: walletId }] },
-          { updatedAt: { $gte: pastDate } }
-        ]
+          { updatedAt: { $gte: pastDate } },
+        ],
       },
     },
     //grouping based on type
@@ -77,7 +77,7 @@ const getSummary = async (decodedToken: JwtPayload) => {
     //projection with field names
     {
       $project: {
-        Type: "$_id",
+        Label: "$_id",
         Amount: "$totalAmount",
         Volume: "$count",
         _id: 0,
@@ -85,6 +85,109 @@ const getSummary = async (decodedToken: JwtPayload) => {
     },
   ]);
   return summaryData;
+};
+
+//anyone can get his own transaction or the admin can get any transaction
+const getAdminSummary = async (decodedToken: JwtPayload) => {
+  const userId = decodedToken.userId;
+  const ifUserExists = await User.findById(userId);
+  if (!ifUserExists) {
+    throw new AppError(httpStatus.BAD_REQUEST, "User does not exists.");
+  }
+
+  // console.log(ifUserExists)
+
+  const initialFilter = {
+    $or: [{ role: IRole.USER }, { role: IRole.AGENT }],
+  };
+
+  const agentCount = await User.find(initialFilter).countDocuments({
+    role: IRole.AGENT,
+  });
+  const userCount = await User.find(initialFilter).countDocuments({
+    role: IRole.USER,
+  });
+  const totalUsersCount = await User.countDocuments(initialFilter);
+  // const verifiedCount = await User.find(initialFilter).countDocuments({isVerified:true});
+  // const unverifiedCount = await User.find(initialFilter).countDocuments({isVerified: false});
+  const suspendedCount = await User.find(initialFilter).countDocuments({
+    status: IStatus.SUSPENDED,
+  });
+  const activeCount = await User.find(initialFilter).countDocuments({
+    status: IStatus.ACTIVE,
+  });
+  const deletedCount = await User.find(initialFilter).countDocuments({
+    status: IStatus.DELETE,
+  });
+  const blockedCount = await User.find(initialFilter).countDocuments({
+    status: IStatus.BLOCKED,
+  });
+
+  // const usersSummaryData = await U
+
+  const usersAllCount = [
+    // {
+    //   Label: 'Verified',
+    //   Amount: verifiedCount
+    // },
+    // {
+    //   Label: 'Unverified',
+    //   Amount: unverifiedCount
+    // },
+    {
+      Label: "Suspended",
+      Amount: suspendedCount,
+    },
+    {
+      Label: "Active",
+      Amount: activeCount,
+    },
+    {
+      Label: "Deleted",
+      Amount: deletedCount,
+    },
+    {
+      Label: "Blocked",
+      Amount: blockedCount,
+    },
+    {
+      Label: "Total",
+      Amount: totalUsersCount,
+    },
+  ];
+
+  const roleData = [
+    {
+      Label: "Agents",
+      Amount: agentCount,
+    },
+    {
+      Label: "Users",
+      Amount: userCount,
+    },
+  ];
+
+  // console.log(usersAllCount)
+
+  const summaryTransactionData = await Transaction.aggregate([
+    {
+      $group: {
+        _id: "$type",
+        count: { $sum: 1 },
+        totalAmount: { $sum: "$amount" },
+      },
+    },
+    //projection with field names
+    {
+      $project: {
+        Label: "$_id",
+        Amount: "$totalAmount",
+        Volume: "$count",
+        _id: 0,
+      },
+    },
+  ]);
+  return [usersAllCount, summaryTransactionData, roleData];
 };
 
 //admins can get all the transactions or users can view their own all transactions
@@ -114,8 +217,6 @@ const getAllTransactions = async (
       $or: [{ from: walletId }, { to: walletId }],
     };
   }
-
-  // console.log("test query",query)
   const queryBuilder = new QueryBuilder(Transaction.find(params), query);
   const usersData = queryBuilder
     .filter()
@@ -389,7 +490,11 @@ const sendMoney = async (payload: ITransaction, decodedToken: JwtPayload) => {
   try {
     const { to: toPhone, type, amount } = payload;
     const ifReceiverExists = await User.findOne({ phoneNo: toPhone });
-    await userValidator(ifReceiverExists);
+    if (decodedToken.role === IRole.AGENT) {
+      await agentValidator(ifReceiverExists);
+    } else {
+      await userValidator(ifReceiverExists);
+    }
 
     if (decodedToken.userId === ifReceiverExists?._id.toString()) {
       throw new AppError(
@@ -529,4 +634,5 @@ export const TransactionServices = {
   addMoneyConfirm,
   refund,
   getSummary,
+  getAdminSummary,
 };

@@ -61,7 +61,6 @@ export class QueryBuilder<T> {
       dateFilter["$lte"] = new Date(filter.endDate);
     }
 
-    // Assuming your schema has a field like createdAt
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (filter as any).createdAt = dateFilter;
 
