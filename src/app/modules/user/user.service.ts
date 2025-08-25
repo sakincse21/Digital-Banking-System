@@ -79,6 +79,10 @@ const updateUser = async (
       throw new AppError(httpStatus.BAD_REQUEST, "User does not exist.");
     }
 
+    if(ifUserExist.role===IRole.SUPER_ADMIN && decodedToken.role !== IRole.SUPER_ADMIN){
+      throw new AppError(httpStatus.UNAUTHORIZED,"You are not authorized to update super admin.")
+    }
+
     const user = await User.findByIdAndUpdate(ifUserExist._id, payload, {
       new: true,
       runValidators: true,
@@ -142,6 +146,17 @@ const deleteUser = async (userId: string) => {
 //admin can get a single user's info
 const getSingleUser = async (userId: string) => {
   const user = await User.findById(userId).select("-password").populate("walletId");
+
+  if (!user) {
+    throw new AppError(httpStatus.BAD_REQUEST, "User does not exist.");
+  }
+
+  return user.toObject();
+};
+
+//any user can search anyone
+const searchUser = async (phoneNo: string) => {
+  const user = await User.findOne({phoneNo}).select({ phoneNo: 1, name: 1, role: 1, _id:0 });
 
   if (!user) {
     throw new AppError(httpStatus.BAD_REQUEST, "User does not exist.");
@@ -225,4 +240,5 @@ export const UserServices = {
   getMe,
   deleteUser,
   updatePassword,
+  searchUser
 };

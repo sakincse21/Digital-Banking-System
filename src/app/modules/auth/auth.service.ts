@@ -3,12 +3,23 @@ import { User } from "../user/user.model"
 import httpStatus from 'http-status';
 import bcrypt from 'bcryptjs'
 import { generateToken } from "../../utils/jwt";
+import { IStatus } from "../user/user.interface";
 
 const login = async (payload:Record<string,string>)=>{
     const ifUserExists = await User.findOne({email: payload.email});
 
     if(!ifUserExists){
         throw new AppError(httpStatus.BAD_REQUEST, "User does not exist. Register first.")
+    }
+
+    if(ifUserExists.status===IStatus.BLOCKED){
+        throw new AppError(httpStatus.BAD_REQUEST, "User is blocked.")
+    }
+    if(ifUserExists.status===IStatus.SUSPENDED){
+        throw new AppError(httpStatus.BAD_REQUEST, "User is suspended.")
+    }
+    if(ifUserExists.status===IStatus.DELETE){
+        throw new AppError(httpStatus.BAD_REQUEST, "User is deleted.")
     }
 
     if(ifUserExists.isVerified===false){

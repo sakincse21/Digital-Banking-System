@@ -19,6 +19,7 @@ router.post('/create',validateRequest(createUserZodSchema), UserControllers.crea
 router.get('/me', authCheck(...Object.values(IRole)),UserControllers.getMe) //by anyone
 router.patch('/update-password', authCheck(...Object.values(IRole)),validateRequest(updatePasswordZodSchema),UserControllers.updatePassword) //by anyone
 router.patch('/:id',authCheck(...Object.values(IRole)), validateRequest(updateUserZodSchema), UserControllers.updateUser) //any user
+router.get('/search/:phoneNo', authCheck(...Object.values(IRole)) ,UserControllers.searchUser) //by any type of user
 router.get('/:id', authCheck(IRole.ADMIN, IRole.SUPER_ADMIN) ,UserControllers.getSingleUser) //by admin
 router.delete('/:id', authCheck(IRole.ADMIN, IRole.SUPER_ADMIN), UserControllers.deleteUser)
 

@@ -42,6 +42,10 @@ export const createUserZodSchema = z.object({
       .string({ invalid_type_error: "NID must be string" })
       .length(17, { message: "NID length must be 13 or 17 characters long." }),
   ]),
+  role: z
+    .enum([IRole.USER, IRole.AGENT], {
+      invalid_type_error: "Role must be a string",
+    })
 });
 
 //anyone basic info update

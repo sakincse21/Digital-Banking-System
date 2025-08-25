@@ -19,6 +19,32 @@ const getSingleTransaction = catchAsync(async (req: Request, res: Response, next
 })
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
+const getSummary = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const decodedToken = req.user;
+    const transaction = await TransactionServices.getSummary(decodedToken)
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Transactions Summary Fetched Successfully",
+        data: transaction,
+    })
+})
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const getAdminSummary = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const decodedToken = req.user;
+    const summaryData = await TransactionServices.getAdminSummary(decodedToken)
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Transactions Summary Fetched Successfully",
+        data: summaryData,
+    })
+})
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getAllTransactions = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const decodedToken = req.user;
     const query = req.query;
@@ -50,7 +76,8 @@ const addMoney = catchAsync(async (req: Request, res: Response, next: NextFuncti
 const addMoneyConfirm = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const decodedToken = req.user;
     const transactionId = req.params.id;
-    const transaction = await TransactionServices.addMoneyConfirm(transactionId,decodedToken)
+    const payload = req.body;
+    const transaction = await TransactionServices.addMoneyConfirm(transactionId,decodedToken, payload)
 
     sendResponse(res, {
         success: true,
@@ -126,5 +153,7 @@ export const TransactionControllers = {
     cashIn,
     sendMoney,
     addMoneyConfirm,
-    refund
+    refund,
+    getSummary,
+    getAdminSummary
 }
