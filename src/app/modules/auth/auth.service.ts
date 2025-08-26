@@ -8,6 +8,7 @@ import { IStatus } from "../user/user.interface";
 const login = async (payload:Record<string,string>)=>{
     const ifUserExists = await User.findOne({email: payload.email});
 
+
     if(!ifUserExists){
         throw new AppError(httpStatus.BAD_REQUEST, "User does not exist. Register first.")
     }

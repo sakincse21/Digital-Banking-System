@@ -14,6 +14,7 @@ app.use(express.json());
 //   credentials: true,
 // }));
 
+
 app.use(
   cors({
     origin: envVars.FRONTEND_URL,
@@ -23,8 +24,6 @@ app.use(
   })
 );
 
-
-// Custom preflight handler
 app.use((req: Request, res: Response, next) => {
   if (req.method === 'OPTIONS') {
     res.header('Access-Control-Allow-Origin', envVars.FRONTEND_URL);
