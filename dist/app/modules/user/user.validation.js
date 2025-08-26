@@ -47,6 +47,10 @@ exports.createUserZodSchema = zod_1.default.object({
             .string({ invalid_type_error: "NID must be string" })
             .length(17, { message: "NID length must be 13 or 17 characters long." }),
     ]),
+    role: zod_1.default
+        .enum([user_interface_1.IRole.USER, user_interface_1.IRole.AGENT], {
+        invalid_type_error: "Role must be a string",
+    })
 });
 //anyone basic info update
 exports.updateUserZodSchema = zod_1.default.object({

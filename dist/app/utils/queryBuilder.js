@@ -10,21 +10,58 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.QueryBuilder = exports.excludeField = void 0;
-exports.excludeField = ["searchTerm", "sort", "fields", "page", "limit"];
+exports.excludeField = ["searchTerm", "sort", "fields", "page", "limit", "sortBy"];
 class QueryBuilder {
     constructor(modelQuery, query) {
         this.modelQuery = modelQuery;
         this.baseQuery = modelQuery.clone(); // Clone for counting
         this.query = query;
     }
+    // filter(): this {
+    //   const filter = { ...this.query };
+    //   for (const field of excludeField) {
+    //     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    //     delete filter[field];
+    //   }
+    //   if (filter.startDate || filter.endDate) {
+    //   const dateFilter: Record<string, unknown> = {};
+    //   if (filter.startDate) {
+    //     dateFilter["$gte"] = new Date(filter.startDate);
+    //   }
+    //   if (filter.endDate) {
+    //     dateFilter["$lte"] = new Date(filter.endDate);
+    //   }
+    //   (filter as any).modifiedAt = dateFilter;
+    //   delete filter.startDate;
+    //   delete filter.endDate;
+    // }
+    // console.log(filter);
+    //   this.modelQuery = this.modelQuery.find(filter);
+    //   this.baseQuery = this.baseQuery.find(filter); // Apply same filter to base query
+    //   return this;
+    // }
     filter() {
         const filter = Object.assign({}, this.query);
         for (const field of exports.excludeField) {
             // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
             delete filter[field];
         }
+        // Handle date range filtering
+        if (filter.startDate || filter.endDate) {
+            const dateFilter = {};
+            if (filter.startDate) {
+                dateFilter["$gte"] = new Date(filter.startDate);
+            }
+            if (filter.endDate) {
+                dateFilter["$lte"] = new Date(filter.endDate);
+            }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            filter.createdAt = dateFilter;
+            delete filter.startDate;
+            delete filter.endDate;
+        }
         this.modelQuery = this.modelQuery.find(filter);
-        this.baseQuery = this.baseQuery.find(filter); // Apply same filter to base query
+        this.baseQuery = this.baseQuery.find(filter);
         return this;
     }
     search(searchableField) {
@@ -41,7 +78,8 @@ class QueryBuilder {
         return this;
     }
     sort() {
-        const sort = this.query.sort || "-createdAt";
+        const sortBy = this.query.sortBy;
+        const sort = this.query.sort && sortBy ? (this.query.sort === 'asc' ? `${sortBy}` : `-${sortBy}`) : "-updatedAt";
         this.modelQuery = this.modelQuery.sort(sort);
         return this;
     }

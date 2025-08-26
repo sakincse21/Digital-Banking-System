@@ -39,6 +39,142 @@ const getSingleTransaction = (transactionId, decodedToken) => __awaiter(void 0, 
     }
     return ifTransactionExists.toObject();
 });
+//anyone can get his own transaction or the admin can get any transaction
+const getSummary = (decodedToken) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = decodedToken.userId;
+    const ifUserExists = yield user_model_1.User.findById(userId);
+    if (!ifUserExists) {
+        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exists.");
+    }
+    const walletId = ifUserExists.phoneNo;
+    // const userTransactions = Transaction.find({
+    //     $or: [{ from: walletId }, { to: walletId }],
+    //   });
+    const pastDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const summaryData = yield transaction_model_1.Transaction.aggregate([
+        //search user
+        {
+            $match: {
+                $and: [
+                    { $or: [{ from: walletId }, { to: walletId }] },
+                    { updatedAt: { $gte: pastDate } },
+                ],
+            },
+        },
+        //grouping based on type
+        {
+            $group: {
+                _id: "$type",
+                count: { $sum: 1 },
+                totalAmount: { $sum: "$amount" },
+            },
+        },
+        //projection with field names
+        {
+            $project: {
+                Label: "$_id",
+                Amount: "$totalAmount",
+                Volume: "$count",
+                _id: 0,
+            },
+        },
+    ]);
+    return summaryData;
+});
+//anyone can get his own transaction or the admin can get any transaction
+const getAdminSummary = (decodedToken) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = decodedToken.userId;
+    const ifUserExists = yield user_model_1.User.findById(userId);
+    if (!ifUserExists) {
+        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exists.");
+    }
+    // console.log(ifUserExists)
+    const initialFilter = {
+        $or: [{ role: user_interface_1.IRole.USER }, { role: user_interface_1.IRole.AGENT }],
+    };
+    const agentCount = yield user_model_1.User.find(initialFilter).countDocuments({
+        role: user_interface_1.IRole.AGENT,
+    });
+    const userCount = yield user_model_1.User.find(initialFilter).countDocuments({
+        role: user_interface_1.IRole.USER,
+    });
+    const totalUsersCount = yield user_model_1.User.countDocuments(initialFilter);
+    // const verifiedCount = await User.find(initialFilter).countDocuments({isVerified:true});
+    // const unverifiedCount = await User.find(initialFilter).countDocuments({isVerified: false});
+    const suspendedCount = yield user_model_1.User.find(initialFilter).countDocuments({
+        status: user_interface_1.IStatus.SUSPENDED,
+    });
+    const activeCount = yield user_model_1.User.find(initialFilter).countDocuments({
+        status: user_interface_1.IStatus.ACTIVE,
+    });
+    const deletedCount = yield user_model_1.User.find(initialFilter).countDocuments({
+        status: user_interface_1.IStatus.DELETE,
+    });
+    const blockedCount = yield user_model_1.User.find(initialFilter).countDocuments({
+        status: user_interface_1.IStatus.BLOCKED,
+    });
+    // const usersSummaryData = await U
+    const usersAllCount = [
+        // {
+        //   Label: 'Verified',
+        //   Amount: verifiedCount
+        // },
+        // {
+        //   Label: 'Unverified',
+        //   Amount: unverifiedCount
+        // },
+        {
+            Label: "Suspended",
+            Amount: suspendedCount,
+        },
+        {
+            Label: "Active",
+            Amount: activeCount,
+        },
+        {
+            Label: "Deleted",
+            Amount: deletedCount,
+        },
+        {
+            Label: "Blocked",
+            Amount: blockedCount,
+        },
+        {
+            Label: "Total",
+            Amount: totalUsersCount,
+        },
+    ];
+    const roleData = [
+        {
+            Label: "Agents",
+            Amount: agentCount,
+        },
+        {
+            Label: "Users",
+            Amount: userCount,
+        },
+    ];
+    // console.log(usersAllCount)
+    const summaryTransactionData = yield transaction_model_1.Transaction.aggregate([
+        {
+            $group: {
+                _id: "$type",
+                count: { $sum: 1 },
+                totalAmount: { $sum: "$amount" },
+            },
+        },
+        //projection with field names
+        {
+            $project: {
+                Label: "$_id",
+                Amount: "$totalAmount",
+                Volume: "$count",
+                _id: 0,
+            },
+        },
+    ]);
+    return [usersAllCount, summaryTransactionData, roleData];
+});
 //admins can get all the transactions or users can view their own all transactions
 const getAllTransactions = (decodedToken, query) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = decodedToken.userId;
@@ -114,7 +250,7 @@ const addMoney = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, fu
     }
 });
 //agent can confirm the add money request send to him from any user.
-const addMoneyConfirm = (transactionId, decodedToken) => __awaiter(void 0, void 0, void 0, function* () {
+const addMoneyConfirm = (transactionId, decodedToken, payload) => __awaiter(void 0, void 0, void 0, function* () {
     const session = yield user_model_1.User.startSession();
     session.startTransaction();
     try {
@@ -122,8 +258,8 @@ const addMoneyConfirm = (transactionId, decodedToken) => __awaiter(void 0, void 
         if ((ifTransactionExists === null || ifTransactionExists === void 0 ? void 0 : ifTransactionExists.type) !== transaction_interface_1.ITransactionType.ADD_MONEY) {
             throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Your operation is not correct.");
         }
-        if ((ifTransactionExists === null || ifTransactionExists === void 0 ? void 0 : ifTransactionExists.status) === transaction_interface_1.ITransactionStatus.COMPLETED) {
-            throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Your operation is already completed.");
+        if ((ifTransactionExists === null || ifTransactionExists === void 0 ? void 0 : ifTransactionExists.status) !== transaction_interface_1.ITransactionStatus.PENDING) {
+            throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Your operation is already processed.");
         }
         const user = yield user_model_1.User.findOne({ phoneNo: ifTransactionExists.from });
         yield (0, transaction_utils_1.userValidator)(user);
@@ -140,17 +276,22 @@ const addMoneyConfirm = (transactionId, decodedToken) => __awaiter(void 0, void 
         if (!agentWallet) {
             throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Your wallet does not exist.");
         }
-        if (ifTransactionExists.amount > agentWallet.balance) {
+        if (!payload.consent) {
             ifTransactionExists.status = transaction_interface_1.ITransactionStatus.FAILED;
-            yield ifTransactionExists.save();
-            throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "You do not have sufficient balance.");
         }
-        userWallet.balance = userWallet.balance + ifTransactionExists.amount;
-        agentWallet.balance = agentWallet.balance - ifTransactionExists.amount;
-        ifTransactionExists.status = transaction_interface_1.ITransactionStatus.COMPLETED;
+        else {
+            if (ifTransactionExists.amount > agentWallet.balance) {
+                ifTransactionExists.status = transaction_interface_1.ITransactionStatus.FAILED;
+                yield ifTransactionExists.save();
+                throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "You do not have sufficient balance.");
+            }
+            userWallet.balance = userWallet.balance + ifTransactionExists.amount;
+            agentWallet.balance = agentWallet.balance - ifTransactionExists.amount;
+            ifTransactionExists.status = transaction_interface_1.ITransactionStatus.COMPLETED;
+            yield agentWallet.save({ session });
+            yield userWallet.save({ session });
+        }
         yield ifTransactionExists.save({ session });
-        yield agentWallet.save({ session });
-        yield userWallet.save({ session });
         yield session.commitTransaction();
         session.endSession();
         return ifTransactionExists.toObject();
@@ -262,7 +403,12 @@ const sendMoney = (payload, decodedToken) => __awaiter(void 0, void 0, void 0, f
     try {
         const { to: toPhone, type, amount } = payload;
         const ifReceiverExists = yield user_model_1.User.findOne({ phoneNo: toPhone });
-        yield (0, transaction_utils_1.userValidator)(ifReceiverExists);
+        if (decodedToken.role === user_interface_1.IRole.AGENT) {
+            yield (0, transaction_utils_1.agentValidator)(ifReceiverExists);
+        }
+        else {
+            yield (0, transaction_utils_1.userValidator)(ifReceiverExists);
+        }
         if (decodedToken.userId === (ifReceiverExists === null || ifReceiverExists === void 0 ? void 0 : ifReceiverExists._id.toString())) {
             throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "You cannot send money to your own wallet.");
         }
@@ -362,4 +508,6 @@ exports.TransactionServices = {
     sendMoney,
     addMoneyConfirm,
     refund,
+    getSummary,
+    getAdminSummary,
 };

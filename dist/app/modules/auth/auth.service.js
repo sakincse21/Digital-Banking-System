@@ -29,10 +29,20 @@ const user_model_1 = require("../user/user.model");
 const http_status_1 = __importDefault(require("http-status"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jwt_1 = require("../../utils/jwt");
+const user_interface_1 = require("../user/user.interface");
 const login = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const ifUserExists = yield user_model_1.User.findOne({ email: payload.email });
     if (!ifUserExists) {
         throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User does not exist. Register first.");
+    }
+    if (ifUserExists.status === user_interface_1.IStatus.BLOCKED) {
+        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User is blocked.");
+    }
+    if (ifUserExists.status === user_interface_1.IStatus.SUSPENDED) {
+        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User is suspended.");
+    }
+    if (ifUserExists.status === user_interface_1.IStatus.DELETE) {
+        throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User is deleted.");
     }
     if (ifUserExists.isVerified === false) {
         throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "User is not verified yet.");

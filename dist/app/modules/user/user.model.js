@@ -45,7 +45,7 @@ const UserSchema = new mongoose_1.Schema({
         type: String,
         enum: Object.values(user_interface_1.IRole),
         required: true,
-        default: user_interface_1.IRole.USER
+        // default: IRole.USER
     },
     status: {
         type: String,

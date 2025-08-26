@@ -30,6 +30,28 @@ const getSingleTransaction = (0, catchAsync_1.catchAsync)((req, res, next) => __
     });
 }));
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
+const getSummary = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const decodedToken = req.user;
+    const transaction = yield transaction_service_1.TransactionServices.getSummary(decodedToken);
+    (0, sendResponse_1.sendResponse)(res, {
+        success: true,
+        statusCode: http_status_1.default.OK,
+        message: "Transactions Summary Fetched Successfully",
+        data: transaction,
+    });
+}));
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const getAdminSummary = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const decodedToken = req.user;
+    const summaryData = yield transaction_service_1.TransactionServices.getAdminSummary(decodedToken);
+    (0, sendResponse_1.sendResponse)(res, {
+        success: true,
+        statusCode: http_status_1.default.OK,
+        message: "Transactions Summary Fetched Successfully",
+        data: summaryData,
+    });
+}));
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getAllTransactions = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const decodedToken = req.user;
     const query = req.query;
@@ -57,7 +79,8 @@ const addMoney = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void
 const addMoneyConfirm = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const decodedToken = req.user;
     const transactionId = req.params.id;
-    const transaction = yield transaction_service_1.TransactionServices.addMoneyConfirm(transactionId, decodedToken);
+    const payload = req.body;
+    const transaction = yield transaction_service_1.TransactionServices.addMoneyConfirm(transactionId, decodedToken, payload);
     (0, sendResponse_1.sendResponse)(res, {
         success: true,
         statusCode: http_status_1.default.OK,
@@ -120,5 +143,7 @@ exports.TransactionControllers = {
     cashIn,
     sendMoney,
     addMoneyConfirm,
-    refund
+    refund,
+    getSummary,
+    getAdminSummary
 };

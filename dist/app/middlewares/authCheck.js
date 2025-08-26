@@ -20,7 +20,7 @@ const http_status_1 = __importDefault(require("http-status"));
 const user_model_1 = require("../modules/user/user.model");
 const user_interface_1 = require("../modules/user/user.interface");
 const authCheck = (...authRoles) => (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const accessToken = req.headers.authorization || req.cookies.accessToken;
+    const accessToken = req.cookies.accessToken || req.headers.authorization;
     // const accessToken = req.cookies?.accessToken;
     if (!accessToken) {
         throw new appErrorHandler_1.default(http_status_1.default.UNAUTHORIZED, "No token provided");
