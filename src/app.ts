@@ -24,6 +24,19 @@ app.use(
 );
 
 
+// Custom preflight handler
+app.use((req: Request, res: Response, next) => {
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Origin', envVars.FRONTEND_URL);
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With');
+    res.status(200).end();
+  } else {
+    next();
+  }
+});
+
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.set("trust proxy", 1);
