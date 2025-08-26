@@ -590,20 +590,20 @@ const refund = async (transactionId: string) => {
     if (!senderWallet) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
-        "sender wallet does not exist."
+        "Original receiver wallet does not exist."
       );
     }
     if (amount > senderWallet.balance) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
-        "Sender do not have sufficient balance."
+        "Original receiver do not have sufficient balance for refund."
       );
     }
     const receiverWallet = await Wallet.findOne({ walletId: to });
     if (!receiverWallet) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
-        "Receiver wallet does not exist."
+        "Original sender wallet does not exist."
       );
     }
 
@@ -611,7 +611,7 @@ const refund = async (transactionId: string) => {
     senderWallet.balance = senderWallet.balance - amount;
     ifTransactionExists.status = ITransactionStatus.REFUNDED;
 
-    ifTransactionExists.save({ session });
+    await ifTransactionExists.save({ session });
     await senderWallet.save({ session });
     await receiverWallet.save({ session });
     await session.commitTransaction();

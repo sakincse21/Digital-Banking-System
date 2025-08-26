@@ -474,19 +474,19 @@ const refund = (transactionId) => __awaiter(void 0, void 0, void 0, function* ()
         }
         const senderWallet = yield wallet_model_1.Wallet.findOne({ walletId: from });
         if (!senderWallet) {
-            throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "sender wallet does not exist.");
+            throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Original receiver wallet does not exist.");
         }
         if (amount > senderWallet.balance) {
-            throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Sender do not have sufficient balance.");
+            throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Original receiver do not have sufficient balance for refund.");
         }
         const receiverWallet = yield wallet_model_1.Wallet.findOne({ walletId: to });
         if (!receiverWallet) {
-            throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Receiver wallet does not exist.");
+            throw new appErrorHandler_1.default(http_status_1.default.BAD_REQUEST, "Original sender wallet does not exist.");
         }
         receiverWallet.balance = receiverWallet.balance + amount;
         senderWallet.balance = senderWallet.balance - amount;
         ifTransactionExists.status = transaction_interface_1.ITransactionStatus.REFUNDED;
-        ifTransactionExists.save({ session });
+        yield ifTransactionExists.save({ session });
         yield senderWallet.save({ session });
         yield receiverWallet.save({ session });
         yield session.commitTransaction();
