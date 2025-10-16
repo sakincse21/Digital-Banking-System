@@ -1,0 +1,1 @@
+export const feesRate = 0.015;

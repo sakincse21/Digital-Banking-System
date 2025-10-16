@@ -14,6 +14,8 @@ import { Wallet } from "../wallet/wallet.model";
 import { amountCheck } from "../../utils/amountChecker";
 import { QueryBuilder } from "../../utils/queryBuilder";
 import { transactionSearchableFields } from "./transaction.constant";
+import { feesRate } from "../fees/fees.constant";
+import { Fees } from "../fees/fees.model";
 
 //anyone can get his own transaction or the admin can get any transaction
 const getSingleTransaction = async (
@@ -408,8 +410,18 @@ const withdrawMoney = async (
       { session }
     );
 
-    userWallet.balance = userWallet.balance - amount;
-    agentWallet.balance = agentWallet.balance + amount;
+    const feesAmount = amount*feesRate;
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const fees = await Fees.create([
+      {
+        transactionId: transaction[0]._id,
+        amount: feesAmount
+      }
+    ],{session})
+
+    userWallet.balance = (userWallet.balance - amount) - feesAmount;
+    agentWallet.balance = (agentWallet.balance + amount) + feesAmount;
 
     await agentWallet.save({ session });
     await userWallet.save({ session });
